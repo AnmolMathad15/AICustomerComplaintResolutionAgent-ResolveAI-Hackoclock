@@ -342,14 +342,14 @@ export default function Portal() {
                 <select
                   value={platform}
                   onChange={(e) => setPlatform(e.target.value as typeof platform)}
-                  className="bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-500/40"
+                  className="bg-slate-900 text-white border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-500/40 [&>option]:bg-slate-900 [&>option]:text-white"
                   data-testid="portal-platform"
                 >
-                  <option value="">Platform (optional)</option>
-                  <option value="amazon">Amazon</option>
-                  <option value="flipkart">Flipkart</option>
-                  <option value="swiggy">Swiggy</option>
-                  <option value="other">Other</option>
+                  <option value="" className="bg-slate-900 text-white">Platform (optional)</option>
+                  <option value="amazon" className="bg-slate-900 text-white">Amazon</option>
+                  <option value="flipkart" className="bg-slate-900 text-white">Flipkart</option>
+                  <option value="swiggy" className="bg-slate-900 text-white">Swiggy</option>
+                  <option value="other" className="bg-slate-900 text-white">Other</option>
                 </select>
                 <input
                   type="text"
