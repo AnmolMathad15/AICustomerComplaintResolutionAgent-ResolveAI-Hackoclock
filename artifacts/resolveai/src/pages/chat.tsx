@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/language-provider";
+import { VoiceInput } from "@/components/voice-input";
 
 interface ChatMessage {
   id: string;
@@ -364,6 +365,12 @@ export default function Chat() {
             disabled={!selectedCustomerId || analyzeMutation.isPending}
             className="flex-1 min-h-[52px] max-h-40 resize-none bg-card"
             rows={2}
+          />
+          <VoiceInput
+            className="h-[52px] w-[52px] shrink-0"
+            onTranscript={(t) =>
+              setInput((prev) => (prev ? `${prev} ${t}` : t))
+            }
           />
           <Button
             onClick={handleSend}

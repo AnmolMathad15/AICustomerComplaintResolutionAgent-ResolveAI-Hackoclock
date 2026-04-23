@@ -30,7 +30,8 @@ export type ComplaintType =
 
 export type Severity = "HIGH" | "MEDIUM" | "LOW";
 export type Sentiment = "positive" | "neutral" | "negative";
-export type TicketStatus = "resolved" | "pending" | "escalated";
+export type TicketStatus = "resolved" | "pending" | "escalated" | "in_progress";
+export type Authenticity = "genuine" | "suspicious" | "likely_fake";
 export type TicketChannel = "chat" | "email" | "phone";
 export type CustomerTier = "Premium" | "Standard" | "Basic";
 
@@ -934,6 +935,95 @@ export interface StoredComplaint extends AnalysisResult {
   agentSpecialty: string | null;
   resolutionOverride: string | null;
   updatedAt: string;
+  // Lightweight fake-complaint detection (admin-only signal)
+  authenticity: Authenticity;
+  authenticityReasons: string[];
+  // Numeric priority rank derived from sentiment/severity, used for queue sorting
+  priorityRank: number;
+}
+
+// ─── Fake Complaint Detection (heuristic) ─────────────────────────────────────
+
+const ABUSE_KEYWORDS = [
+  "idiot",
+  "stupid",
+  "fuck",
+  "shit",
+  "damn",
+  "hate you",
+  "scam",
+  "scammer",
+  "trash company",
+  "worst ever",
+];
+
+/**
+ * Detect authenticity of a complaint based on existing store contents.
+ * Returns a label + human-readable reasons. Never blocks submission —
+ * signal is surfaced to admins only.
+ */
+export function detectAuthenticity(
+  complaintText: string,
+  customerId: string,
+  existing: StoredComplaint[]
+): { authenticity: Authenticity; reasons: string[] } {
+  const reasons: string[] = [];
+  const text = complaintText.toLowerCase().trim();
+
+  const abuseHits = ABUSE_KEYWORDS.filter((k) => text.includes(k));
+  if (abuseHits.length > 0) {
+    reasons.push(`Abusive language detected (${abuseHits.slice(0, 2).join(", ")})`);
+  }
+
+  const fromSameCustomer = existing.filter((c) => c.customerId === customerId);
+
+  // Repeat: identical or near-identical complaint within last 24h
+  const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const repeats = fromSameCustomer.filter(
+    (c) =>
+      new Date(c.createdAt).getTime() > dayAgo &&
+      c.complaint.toLowerCase().trim() === text
+  );
+  if (repeats.length >= 1) {
+    reasons.push(`Duplicate of ${repeats.length} recent complaint(s)`);
+  }
+
+  // Frequency burst: 3+ submissions in last 5 minutes
+  const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+  const burst = fromSameCustomer.filter(
+    (c) => new Date(c.createdAt).getTime() > fiveMinAgo
+  );
+  if (burst.length >= 3) {
+    reasons.push(`High submission frequency (${burst.length + 1} in 5 min)`);
+  }
+
+  // Very short complaint (< 8 chars) → suspicious
+  if (text.length > 0 && text.length < 8) {
+    reasons.push("Complaint text too short to be meaningful");
+  }
+
+  let authenticity: Authenticity = "genuine";
+  if (reasons.length >= 2 || abuseHits.length >= 2 || burst.length >= 3) {
+    authenticity = "likely_fake";
+  } else if (reasons.length === 1) {
+    authenticity = "suspicious";
+  }
+
+  return { authenticity, reasons };
+}
+
+// Priority ranking: lower number = higher priority (negative + HIGH first)
+function computePriorityRank(
+  sentiment: Sentiment,
+  severity: Severity,
+  customerTier: string
+): number {
+  const sentimentScore =
+    sentiment === "negative" ? 0 : sentiment === "neutral" ? 100 : 200;
+  const severityScore =
+    severity === "HIGH" ? 0 : severity === "MEDIUM" ? 30 : 60;
+  const tierScore = customerTier === "Premium" ? 0 : customerTier === "Standard" ? 5 : 10;
+  return sentimentScore + severityScore + tierScore;
 }
 
 const complaintStore: StoredComplaint[] = [];
@@ -945,6 +1035,19 @@ export function storeComplaint(
   const company = companyId ? findCompany(companyId) : undefined;
   const status: TicketStatus = result.shouldEscalate ? "escalated" : "resolved";
 
+  // Run authenticity heuristic against existing complaints (admin-only signal).
+  const { authenticity, reasons: authenticityReasons } = detectAuthenticity(
+    result.complaint,
+    result.customerId,
+    complaintStore
+  );
+
+  const priorityRank = computePriorityRank(
+    result.sentiment,
+    result.severity,
+    result.customerTier
+  );
+
   const record: StoredComplaint = {
     ...result,
     companyId: company?.id ?? companyId ?? "amazon",
@@ -954,6 +1057,9 @@ export function storeComplaint(
     agentSpecialty: null,
     resolutionOverride: null,
     updatedAt: new Date().toISOString(),
+    authenticity,
+    authenticityReasons,
+    priorityRank,
   };
 
   // Auto-assign agent if escalated and company has agents

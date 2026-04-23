@@ -1,0 +1,166 @@
+You are a senior full-stack engineer and AI systems architect.
+
+IMPORTANT RULES:
+- DO NOT break existing UI or working features
+- DO NOT remove or rewrite existing components unless absolutely necessary
+- ONLY extend the system modularly
+- Preserve current styling, layout, and navigation
+- Ensure backward compatibility
+- Use clean, scalable architecture
+
+PROJECT CONTEXT:
+This is an AI-powered complaint resolution system called "ResolveAI" with:
+- Dashboard
+- Chat AI
+- Analyze AI
+- Complaint Log
+- Customers
+- Customer Portal
+
+GOAL:
+Upgrade this into a REAL-WORLD SaaS system with:
+- Customer Portal + Admin Portal
+- AI-powered complaint lifecycle
+- Real-time processing
+- Priority-based resolution
+
+---
+
+TASKS TO IMPLEMENT (STEP-BY-STEP, SAFE EXTENSION):
+
+### 1. CREATE COMPLAINT PIPELINE (DO NOT BREAK EXISTING CHAT AI)
+
+When a user submits a complaint:
+- Generate a unique ticket ID
+- Store complaint in a structured format (use mock DB if needed)
+- Automatically send it to:
+  a) Complaint Log
+  b) Admin Dashboard queue
+
+Data structure:
+{
+  id: "",
+  customer_id: "",
+  company: "",
+  complaint_text: "",
+  category: "",
+  sentiment: "",
+  priority: "",
+  status: "Pending",
+  created_at: "",
+}
+
+---
+
+### 2. ADD AI PROCESSING LAYER (WRAP AROUND EXISTING AI)
+
+Enhance current AI instead of replacing:
+
+For every complaint:
+- Detect category (refund, payment, delivery, etc.)
+- Detect sentiment (positive, neutral, negative)
+- Assign priority:
+    negative → high
+    neutral → medium
+    positive → low
+
+- Generate instant response to customer
+
+DO NOT change UI — just inject results dynamically.
+
+---
+
+### 3. CONNECT MODULES (CRITICAL)
+
+Ensure:
+- Chat AI → sends data to Complaint Log
+- Complaint Log → updates Admin Dashboard
+- Status updates reflect everywhere
+
+Add live state sync (simple global store or state management)
+
+---
+
+### 4. ADMIN PRIORITY QUEUE (EXTEND DASHBOARD)
+
+Add:
+- Sort complaints by:
+    1. Sentiment (negative first)
+    2. Time
+    3. Customer type
+
+Add labels:
+- 🔴 High Priority
+- 🟡 Medium
+- 🟢 Low
+
+---
+
+### 5. STATUS LIFECYCLE (MINIMAL CHANGE)
+
+Add status flow:
+- Pending
+- In Progress
+- AI Resolved
+- Escalated
+
+Allow status updates from admin side.
+
+---
+
+### 6. FAKE COMPLAINT DETECTION (LIGHTWEIGHT AI)
+
+Add a simple heuristic:
+- Repeat complaints
+- Abuse keywords
+- Too frequent submissions
+
+Return:
+- Genuine
+- Suspicious
+- Likely Fake
+
+Display in admin panel ONLY.
+
+---
+
+### 7. VOICE INPUT (NON-BREAKING ADD-ON)
+
+Add optional voice button:
+- Use browser speech-to-text
+- Fill input field automatically
+
+DO NOT replace text input.
+
+---
+
+### 8. REAL-TIME FEEL (FAKE IF NEEDED)
+
+Simulate real-time updates using:
+- polling OR
+- local state updates
+
+No heavy backend required.
+
+---
+
+### 9. KEEP EVERYTHING WORKING
+
+Before finalizing:
+- Ensure all existing pages still load
+- No UI breaks
+- No removed features
+- No console errors
+
+---
+
+OUTPUT FORMAT:
+- Show ONLY added/modified code blocks
+- Clearly label where to insert changes
+- Do not rewrite entire files unless required
+- Add comments for every change
+
+---
+
+FINAL GOAL:
+Transform this project from a UI demo into a working AI complaint resolution system WITHOUT breaking anything.

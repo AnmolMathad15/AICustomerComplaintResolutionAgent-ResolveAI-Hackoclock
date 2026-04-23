@@ -27,7 +27,58 @@ import { useCompany } from "@/lib/company-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-type FilterKey = "all" | "resolved" | "escalated" | "pending";
+type FilterKey = "all" | "resolved" | "escalated" | "pending" | "in_progress";
+type SortKey = "recent" | "priority";
+
+// Status display label (admin-side rename: "resolved" → "AI Resolved")
+function statusLabel(status: string): string {
+  if (status === "resolved") return "AI Resolved";
+  if (status === "in_progress") return "In Progress";
+  if (status === "escalated") return "Escalated";
+  if (status === "pending") return "Pending";
+  return status;
+}
+
+function statusBadgeClass(status: string): string {
+  switch (status) {
+    case "escalated":
+      return "border-red-500/40 text-red-300 bg-red-500/10 glow-red";
+    case "pending":
+      return "border-amber-500/40 text-amber-300 bg-amber-500/10 glow-amber";
+    case "in_progress":
+      return "border-sky-500/40 text-sky-300 bg-sky-500/10";
+    default:
+      return "border-emerald-500/40 text-emerald-300 bg-emerald-500/10 glow-emerald-soft";
+  }
+}
+
+function priorityFromSentiment(sentiment: string): {
+  label: string;
+  cls: string;
+  dot: string;
+} {
+  if (sentiment === "negative")
+    return { label: "High Priority", cls: "text-red-300", dot: "🔴" };
+  if (sentiment === "positive")
+    return { label: "Low Priority", cls: "text-emerald-300", dot: "🟢" };
+  return { label: "Medium", cls: "text-amber-300", dot: "🟡" };
+}
+
+function authenticityBadge(value?: string): {
+  label: string;
+  cls: string;
+} | null {
+  if (!value || value === "genuine") return null;
+  if (value === "likely_fake")
+    return {
+      label: "Likely Fake",
+      cls: "border-fuchsia-500/40 text-fuchsia-300 bg-fuchsia-500/10",
+    };
+  return {
+    label: "Suspicious",
+    cls: "border-yellow-500/40 text-yellow-300 bg-yellow-500/10",
+  };
+}
 
 function ComplaintRow({
   complaint,
@@ -46,6 +97,20 @@ function ComplaintRow({
 
   const status: string =
     complaint.status ?? (complaint.shouldEscalate ? "escalated" : "resolved");
+  const priority = priorityFromSentiment(complaint.sentiment);
+  const authBadge = authenticityBadge(complaint.authenticity);
+
+  const onStatusChange = (next: string) => {
+    update(
+      { ticketId: complaint.ticketId, data: { status: next as any } },
+      {
+        onSuccess: () => {
+          toast({ title: "Status updated", description: `${complaint.ticketId} → ${statusLabel(next)}` });
+          refresh();
+        },
+      },
+    );
+  };
 
   const severityBorder = (s: string) => {
     switch (s.toUpperCase()) {
@@ -200,31 +265,39 @@ function ComplaintRow({
           </div>
 
           <div className="p-5 md:col-span-3 border-l border-white/5 flex flex-col items-start justify-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={cn("text-[11px] font-medium", priority.cls)}>
+                {priority.dot} {priority.label}
+              </span>
+              {authBadge && (
+                <Badge
+                  variant="outline"
+                  className={cn("text-[10px]", authBadge.cls)}
+                  title={(complaint.authenticityReasons ?? []).join(" • ")}
+                  data-testid={`authenticity-${complaint.ticketId}`}
+                >
+                  {authBadge.label}
+                </Badge>
+              )}
+            </div>
             <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
               {t("complaints.status")}
             </p>
-            {status === "escalated" ? (
-              <Badge
-                variant="outline"
-                className="border-red-500/40 text-red-300 bg-red-500/10 glow-red"
-              >
-                {t("badges.escalated")}
-              </Badge>
-            ) : status === "pending" ? (
-              <Badge
-                variant="outline"
-                className="border-amber-500/40 text-amber-300 bg-amber-500/10 glow-amber"
-              >
-                {t("badges.pending")}
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="border-emerald-500/40 text-emerald-300 bg-emerald-500/10 glow-emerald-soft"
-              >
-                {t("badges.resolved")}
-              </Badge>
-            )}
+            <Badge variant="outline" className={statusBadgeClass(status)}>
+              {statusLabel(status)}
+            </Badge>
+            <select
+              value={status}
+              onChange={(e) => onStatusChange(e.target.value)}
+              disabled={isPending}
+              className="w-full h-7 text-[11px] rounded-md bg-white/[0.04] border border-white/10 px-2 focus:outline-none focus:border-orange-500/40"
+              data-testid={`status-${complaint.ticketId}`}
+            >
+              <option value="pending">Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">AI Resolved</option>
+              <option value="escalated">Escalated</option>
+            </select>
 
             {complaint.assignedAgent && (
               <div className="text-[11px] text-foreground/80">
@@ -269,15 +342,16 @@ export default function Complaints() {
   const { selectedCompanyId, selectedCompany } = useCompany();
   const params = selectedCompanyId !== "all" ? { companyId: selectedCompanyId } : undefined;
   const { data: complaints, isLoading, isError } = useListComplaints(params, {
-    query: { refetchInterval: 3000 },
+    query: { refetchInterval: 3000, queryKey: getListComplaintsQueryKey(params) },
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [sort, setSort] = useState<SortKey>("recent");
   const t = useT();
 
   const filteredComplaints = useMemo(() => {
     if (!complaints) return [];
-    return complaints
+    const filtered = complaints
       .filter(
         (c: any) =>
           c.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -287,12 +361,21 @@ export default function Complaints() {
       .filter((c: any) => {
         const status = c.status ?? (c.shouldEscalate ? "escalated" : "resolved");
         if (filter === "all") return true;
-        if (filter === "resolved") return status === "resolved";
-        if (filter === "escalated") return status === "escalated";
-        if (filter === "pending") return status === "pending";
-        return true;
+        return status === filter;
       });
-  }, [complaints, searchTerm, filter]);
+
+    if (sort === "priority") {
+      // Lower priorityRank = higher priority (negative + HIGH first).
+      // Tier breaks ties by recency.
+      return [...filtered].sort((a: any, b: any) => {
+        const ra = a.priorityRank ?? 999;
+        const rb = b.priorityRank ?? 999;
+        if (ra !== rb) return ra - rb;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+    return filtered;
+  }, [complaints, searchTerm, filter, sort]);
 
   const exportCsv = () => {
     if (!filteredComplaints.length) return;
@@ -363,6 +446,7 @@ export default function Complaints() {
   const filters: { key: FilterKey; label: string }[] = [
     { key: "all", label: t("complaints.filterAll") },
     { key: "resolved", label: t("complaints.filterAiResolved") },
+    { key: "in_progress", label: "In Progress" },
     { key: "escalated", label: t("complaints.filterEscalated") },
     { key: "pending", label: t("complaints.filterPending") },
   ];
@@ -398,13 +482,25 @@ export default function Complaints() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button
-            onClick={exportCsv}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full glass border-white/10 text-sm hover:border-orange-500/40 transition-all"
-          >
-            <Download className="w-4 h-4" />
-            {t("complaints.export")}
-          </button>
+          <div className="flex items-center gap-2">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="h-9 text-xs rounded-full glass border border-white/10 px-3 focus:outline-none focus:border-orange-500/40"
+              data-testid="sort-select"
+              title="Sort complaints"
+            >
+              <option value="recent">Newest first</option>
+              <option value="priority">Priority (negative first)</option>
+            </select>
+            <button
+              onClick={exportCsv}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full glass border-white/10 text-sm hover:border-orange-500/40 transition-all"
+            >
+              <Download className="w-4 h-4" />
+              {t("complaints.export")}
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 fade-in-up">

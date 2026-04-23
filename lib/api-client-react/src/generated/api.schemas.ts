@@ -47,6 +47,7 @@ export const UpdateComplaintBodyStatus = {
   resolved: "resolved",
   pending: "pending",
   escalated: "escalated",
+  in_progress: "in_progress",
 } as const;
 
 export interface UpdateComplaintBody {
@@ -119,6 +120,16 @@ export const AnalyzeComplaintResponseStatus = {
   resolved: "resolved",
   pending: "pending",
   escalated: "escalated",
+  in_progress: "in_progress",
+} as const;
+
+export type AnalyzeComplaintResponseAuthenticity =
+  (typeof AnalyzeComplaintResponseAuthenticity)[keyof typeof AnalyzeComplaintResponseAuthenticity];
+
+export const AnalyzeComplaintResponseAuthenticity = {
+  genuine: "genuine",
+  suspicious: "suspicious",
+  likely_fake: "likely_fake",
 } as const;
 
 export interface AnalyzeComplaintResponse {
@@ -156,6 +167,9 @@ export interface AnalyzeComplaintResponse {
   /** @nullable */
   resolutionOverride?: string | null;
   updatedAt?: string;
+  authenticity?: AnalyzeComplaintResponseAuthenticity;
+  authenticityReasons?: string[];
+  priorityRank?: number;
 }
 
 export type HistoryItemChannel =

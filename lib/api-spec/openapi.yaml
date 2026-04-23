@@ -343,7 +343,7 @@ components:
       properties:
         status:
           type: string
-          enum: [resolved, pending, escalated]
+          enum: [resolved, pending, escalated, in_progress]
         assignedAgentId:
           type: ["string", "null"]
         resolutionOverride:
@@ -447,7 +447,7 @@ components:
           type: string
         status:
           type: string
-          enum: [resolved, pending, escalated]
+          enum: [resolved, pending, escalated, in_progress]
         assignedAgentId:
           type: ["string", "null"]
         agentSpecialty:
@@ -456,6 +456,15 @@ components:
           type: ["string", "null"]
         updatedAt:
           type: string
+        authenticity:
+          type: string
+          enum: [genuine, suspicious, likely_fake]
+        authenticityReasons:
+          type: array
+          items:
+            type: string
+        priorityRank:
+          type: integer
       required:
         - ticketId
         - customerId

@@ -70,3 +70,10 @@ ResolveAI now supports per-company tenancy. Companies live in `artifacts/api-ser
 Frontend uses a `CompanyProvider` context (`artifacts/resolveai/src/lib/company-context.tsx`) with localStorage persistence. The `<CompanySwitcher />` in the header bar filters Dashboard and Complaints by `companyId`. Both pages use `refetchInterval` for live polling.
 
 The `/portal` route is a customer-facing surface: pick a company, file a complaint, and watch status updates via polling + toasts. Admin operators can override resolutions and assign agents from the Complaints page using `useUpdateComplaint`.
+
+## Lifecycle, Priority & Fake Detection
+
+- **Status lifecycle**: `pending` → `in_progress` → `resolved` (relabeled "AI Resolved" in admin UI) or `escalated`. Admins change status from the per-row dropdown on the Complaints page.
+- **Priority queue**: each stored complaint has a `priorityRank` (lower = higher priority) computed from sentiment + severity + tier. The Complaints page exposes a "Priority (negative first)" sort.
+- **Authenticity (admin-only)**: `detectAuthenticity` in the engine flags complaints as `genuine | suspicious | likely_fake` based on abuse keywords, exact duplicates within 24h, submission frequency bursts, and overly-short text. Reasons render as a tooltip on the Likely Fake / Suspicious badge.
+- **Voice input**: `components/voice-input.tsx` uses the browser Web Speech API. The mic button appears next to the chat textarea and the portal complaint form whenever the browser supports it; transcripts are appended to the existing input value (typing is preserved).

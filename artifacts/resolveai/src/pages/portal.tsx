@@ -18,11 +18,13 @@ import {
   useAnalyzeComplaint,
   useListComplaints,
   useListCompanies,
+  getListComplaintsQueryKey,
 } from "@workspace/api-client-react";
 import type { AnalyzeComplaintResponse, Company } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { BackgroundAmbient } from "@/components/background-ambient";
 import { LanguageSelector } from "@/components/language-selector";
+import { VoiceInput } from "@/components/voice-input";
 import { cn } from "@/lib/utils";
 
 const CUSTOMER_KEY = "resolveai.portal.customerId";
@@ -80,10 +82,16 @@ export default function Portal() {
   const { mutate: analyze, isPending } = useAnalyzeComplaint();
 
   // Live polling: refetch every 3 seconds for selected company + this customer
-  const { data: complaints = [], refetch } = useListComplaints(
-    { customerId, ...(selectedCompanyId ? { companyId: selectedCompanyId } : {}) },
-    { query: { refetchInterval: 3000 } }
-  );
+  const portalListParams = {
+    customerId,
+    ...(selectedCompanyId ? { companyId: selectedCompanyId } : {}),
+  };
+  const { data: complaints = [], refetch } = useListComplaints(portalListParams, {
+    query: {
+      refetchInterval: 3000,
+      queryKey: getListComplaintsQueryKey(portalListParams),
+    },
+  });
 
   const selectedCompany: Company | undefined = useMemo(
     () => companies.find((c) => c.id === selectedCompanyId),
@@ -292,10 +300,17 @@ export default function Portal() {
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-500/40 resize-none"
                 data-testid="portal-complaint-input"
               />
-              <div className="flex items-center justify-between mt-3">
-                <span className="text-[11px] text-muted-foreground">
-                  ⌘ / Ctrl + Enter to submit
-                </span>
+              <div className="flex items-center justify-between mt-3 gap-2">
+                <div className="flex items-center gap-2">
+                  <VoiceInput
+                    onTranscript={(t) =>
+                      setDraft((prev) => (prev ? `${prev} ${t}` : t))
+                    }
+                  />
+                  <span className="text-[11px] text-muted-foreground">
+                    ⌘ / Ctrl + Enter to submit
+                  </span>
+                </div>
                 <button
                   onClick={submit}
                   disabled={isPending || !draft.trim()}

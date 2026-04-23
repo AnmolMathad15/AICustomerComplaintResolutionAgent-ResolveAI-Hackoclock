@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout";
-import { useGetDashboardStats } from "@workspace/api-client-react";
+import { useGetDashboardStats, getGetDashboardStatsQueryKey } from "@workspace/api-client-react";
 import { useCompany } from "@/lib/company-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,7 +41,7 @@ export default function Dashboard() {
   const { selectedCompanyId, selectedCompany } = useCompany();
   const params = selectedCompanyId !== "all" ? { companyId: selectedCompanyId } : undefined;
   const { data: stats, isLoading, isError } = useGetDashboardStats(params, {
-    query: { refetchInterval: 5000 },
+    query: { refetchInterval: 5000, queryKey: getGetDashboardStatsQueryKey(params) },
   });
   const t = useT();
 

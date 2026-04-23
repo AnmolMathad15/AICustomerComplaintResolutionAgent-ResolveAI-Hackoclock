@@ -80,7 +80,12 @@ router.patch("/complaints/:ticketId", async (req, res): Promise<void> => {
   const ticketId = String(req.params.ticketId);
   const { status, assignedAgentId, resolutionOverride } = req.body ?? {};
 
-  const validStatuses: TicketStatus[] = ["resolved", "pending", "escalated"];
+  const validStatuses: TicketStatus[] = [
+    "resolved",
+    "pending",
+    "escalated",
+    "in_progress",
+  ];
   if (status !== undefined && !validStatuses.includes(status)) {
     res.status(400).json({ error: "Invalid status" });
     return;

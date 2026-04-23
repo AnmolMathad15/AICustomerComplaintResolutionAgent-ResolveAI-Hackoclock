@@ -72,11 +72,16 @@ export const AnalyzeComplaintResponse = zod.object({
   createdAt: zod.string(),
   companyId: zod.string().optional(),
   companyName: zod.string().optional(),
-  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  status: zod
+    .enum(["resolved", "pending", "escalated", "in_progress"])
+    .optional(),
   assignedAgentId: zod.string().nullish(),
   agentSpecialty: zod.string().nullish(),
   resolutionOverride: zod.string().nullish(),
   updatedAt: zod.string().optional(),
+  authenticity: zod.enum(["genuine", "suspicious", "likely_fake"]).optional(),
+  authenticityReasons: zod.array(zod.string()).optional(),
+  priorityRank: zod.number().optional(),
 });
 
 /**
@@ -135,11 +140,16 @@ export const ListComplaintsResponseItem = zod.object({
   createdAt: zod.string(),
   companyId: zod.string().optional(),
   companyName: zod.string().optional(),
-  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  status: zod
+    .enum(["resolved", "pending", "escalated", "in_progress"])
+    .optional(),
   assignedAgentId: zod.string().nullish(),
   agentSpecialty: zod.string().nullish(),
   resolutionOverride: zod.string().nullish(),
   updatedAt: zod.string().optional(),
+  authenticity: zod.enum(["genuine", "suspicious", "likely_fake"]).optional(),
+  authenticityReasons: zod.array(zod.string()).optional(),
+  priorityRank: zod.number().optional(),
 });
 export const ListComplaintsResponse = zod.array(ListComplaintsResponseItem);
 
@@ -151,7 +161,9 @@ export const UpdateComplaintParams = zod.object({
 });
 
 export const UpdateComplaintBody = zod.object({
-  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  status: zod
+    .enum(["resolved", "pending", "escalated", "in_progress"])
+    .optional(),
   assignedAgentId: zod.string().nullish(),
   resolutionOverride: zod.string().nullish(),
 });
@@ -203,11 +215,16 @@ export const UpdateComplaintResponse = zod.object({
   createdAt: zod.string(),
   companyId: zod.string().optional(),
   companyName: zod.string().optional(),
-  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  status: zod
+    .enum(["resolved", "pending", "escalated", "in_progress"])
+    .optional(),
   assignedAgentId: zod.string().nullish(),
   agentSpecialty: zod.string().nullish(),
   resolutionOverride: zod.string().nullish(),
   updatedAt: zod.string().optional(),
+  authenticity: zod.enum(["genuine", "suspicious", "likely_fake"]).optional(),
+  authenticityReasons: zod.array(zod.string()).optional(),
+  priorityRank: zod.number().optional(),
 });
 
 /**
