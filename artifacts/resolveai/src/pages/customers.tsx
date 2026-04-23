@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { formatShortDate } from "@/lib/format";
+import { useT } from "@/components/language-provider";
 
 export default function Customers() {
+  const t = useT();
   const { data: customers, isLoading, isError } = useListCustomers();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -66,19 +68,19 @@ export default function Customers() {
   }
 
   return (
-    <Layout>
+    <Layout pageTitle="Customers">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Customer Profiles</h1>
-          <p className="text-muted-foreground mt-1">Manage users and their historical interactions.</p>
+        <div className="fade-in-up">
+          <h1 className="text-3xl font-bold tracking-tight text-glow-orange">{t("customers.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("customers.subtitle")}</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between fade-in-up">
           <div className="relative w-full sm:w-[350px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name, email, or ID..." 
-              className="pl-9"
+            <Input
+              placeholder={t("customers.search")}
+              className="pl-9 glass border-white/10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               data-testid="input-search-customers"

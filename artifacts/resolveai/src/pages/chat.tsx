@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/language-provider";
 
 interface ChatMessage {
   id: string;
@@ -34,19 +35,20 @@ interface ChatMessage {
 }
 
 function TypingIndicator() {
+  const t = useT();
   return (
-    <div className="flex gap-3 items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-1">
-        <Bot className="w-4 h-4 text-primary" />
+    <div className="flex gap-3 items-start slide-in-left">
+      <div className="w-8 h-8 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center shrink-0 mt-1">
+        <Bot className="w-4 h-4 text-orange-400" />
       </div>
-      <div className="bg-card border rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+      <div className="glass rounded-2xl rounded-tl-sm px-4 py-3">
         <div className="flex items-center gap-1.5">
           <div className="flex gap-1">
-            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
-            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
-            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
+            <span className="w-2 h-2 rounded-full bg-orange-400 animate-bounce [animation-delay:0ms]" />
+            <span className="w-2 h-2 rounded-full bg-orange-400 animate-bounce [animation-delay:150ms]" />
+            <span className="w-2 h-2 rounded-full bg-orange-400 animate-bounce [animation-delay:300ms]" />
           </div>
-          <span className="text-xs text-muted-foreground ml-1">Analyzing complaint...</span>
+          <span className="text-xs text-muted-foreground ml-1">{t("chat.analyzing")}</span>
         </div>
       </div>
     </div>
@@ -276,17 +278,16 @@ export default function Chat() {
     }
   };
 
+  const t = useT();
   return (
-    <Layout>
-      <div className="flex flex-col h-[calc(100vh-8rem)] -mt-2">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <BrainCircuit className="w-6 h-6 text-primary" />
-            Chat AI
+    <Layout pageTitle="Chat AI">
+      <div className="flex flex-col h-[calc(100vh-10rem)] -mt-2">
+        <div className="mb-4 fade-in-up">
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 text-glow-orange">
+            <BrainCircuit className="w-7 h-7 text-orange-400" />
+            {t("chat.title")}
           </h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            Submit complaints conversationally and get real-time AI analysis.
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">{t("chat.subtitle")}</p>
         </div>
 
         {/* Customer Selector */}
@@ -295,8 +296,8 @@ export default function Chat() {
             <Skeleton className="h-10 w-64" />
           ) : (
             <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-              <SelectTrigger className="w-64 bg-card">
-                <SelectValue placeholder="Select a customer to begin..." />
+              <SelectTrigger className="w-64 glass border-white/10">
+                <SelectValue placeholder={t("chat.selectCustomer")} />
               </SelectTrigger>
               <SelectContent>
                 {customers?.map((c) => (
@@ -317,10 +318,8 @@ export default function Chat() {
                 <BrainCircuit className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-foreground">AI Complaint Assistant</p>
-                <p className="text-sm mt-1 max-w-xs">
-                  Select a customer above and type a complaint to get instant AI analysis, resolution, and escalation assessment.
-                </p>
+                <p className="font-medium text-foreground">{t("chat.aiAssistantTitle")}</p>
+                <p className="text-sm mt-1 max-w-xs">{t("chat.aiAssistantHint")}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-xs text-left">
                 {[
@@ -361,11 +360,7 @@ export default function Chat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={
-              selectedCustomerId
-                ? "Describe the customer's complaint... (Enter to send, Shift+Enter for newline)"
-                : "Select a customer first..."
-            }
+            placeholder={selectedCustomerId ? t("chat.placeholder") : t("chat.placeholderNoCustomer")}
             disabled={!selectedCustomerId || analyzeMutation.isPending}
             className="flex-1 min-h-[52px] max-h-40 resize-none bg-card"
             rows={2}
@@ -373,7 +368,7 @@ export default function Chat() {
           <Button
             onClick={handleSend}
             disabled={!input.trim() || !selectedCustomerId || analyzeMutation.isPending}
-            className="h-[52px] px-4 shrink-0"
+            className="h-[52px] px-5 shrink-0 glow-orange glow-orange-hover"
           >
             {analyzeMutation.isPending ? (
               <BrainCircuit className="w-5 h-5 animate-pulse" />

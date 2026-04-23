@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -7,78 +7,85 @@ import {
   Zap,
   Settings,
   MessageSquare,
-  Sun,
-  Moon,
-  Zap as LogoIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/components/theme-provider";
+import { BackgroundAmbient } from "@/components/background-ambient";
+import { HeaderBar } from "@/components/header-bar";
+import { useT } from "@/components/language-provider";
+import { TranslationKey } from "@/lib/i18n";
 
 interface LayoutProps {
   children: ReactNode;
+  pageTitle?: string;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, pageTitle }: LayoutProps) {
   const [location] = useLocation();
-  const { theme, toggleTheme } = useTheme();
+  const t = useT();
+  const logoUrl = `${import.meta.env.BASE_URL}resolveai-logo.png`;
 
-  const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/chat", label: "Chat AI", icon: MessageSquare },
-    { href: "/analyze", label: "Analyze AI", icon: Zap },
-    { href: "/complaints", label: "Complaints", icon: MessageSquareWarning },
-    { href: "/customers", label: "Customers", icon: Users },
+  useEffect(() => {
+    if (pageTitle) document.title = `ResolveAI | ${pageTitle}`;
+  }, [pageTitle]);
+
+  const navItems: { href: string; labelKey: TranslationKey; icon: typeof LayoutDashboard }[] = [
+    { href: "/dashboard", labelKey: "sidebar.dashboard", icon: LayoutDashboard },
+    { href: "/chat", labelKey: "sidebar.chat", icon: MessageSquare },
+    { href: "/analyze", labelKey: "sidebar.analyze", icon: Zap },
+    { href: "/complaints", labelKey: "sidebar.complaints", icon: MessageSquareWarning },
+    { href: "/customers", labelKey: "sidebar.customers", icon: Users },
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden text-foreground relative">
+      <BackgroundAmbient />
+
       {/* Sidebar */}
-      <aside className="w-64 bg-sidebar border-r border-sidebar-border flex-col hidden md:flex">
-        <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2 text-sidebar-foreground font-bold text-xl tracking-tight">
-            <LogoIcon className="w-6 h-6 text-sidebar-primary" />
-            <span>Resolve<span className="text-sidebar-primary">AI</span></span>
-          </div>
-          <button
-            onClick={toggleTheme}
-            className="p-1.5 rounded-md text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-            title="Toggle theme"
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+      <aside className="w-64 glass-strong border-r border-white/8 flex-col hidden md:flex relative z-10">
+        <div className="h-20 flex items-center justify-center px-4 border-b border-white/8">
+          <Link href="/dashboard">
+            <img
+              src={logoUrl}
+              alt="ResolveAI"
+              className="glow-logo cursor-pointer"
+              style={{ width: 160, height: "auto" }}
+            />
+          </Link>
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto">
-          <div className="text-xs font-semibold text-sidebar-foreground/50 tracking-wider uppercase mb-4 px-2">
-            Operations
+          <div className="text-[10px] font-semibold text-foreground/45 tracking-[0.2em] uppercase mb-4 px-2">
+            {t("sidebar.operations")}
           </div>
           <nav className="space-y-1">
             {navItems.map((item) => {
               const isActive =
                 location === item.href ||
-                (item.href !== "/" && location.startsWith(item.href));
+                (item.href !== "/dashboard" && location.startsWith(item.href));
               const Icon = item.icon;
 
               return (
                 <Link key={item.href} href={item.href}>
                   <div
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer group",
+                      "relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer group",
+                      "hover:pl-5 hover:text-orange-400",
                       isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                        ? "bg-orange-500/10 text-orange-400 font-medium"
+                        : "text-foreground/70 hover:bg-orange-500/5"
                     )}
-                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                    data-testid={`nav-${item.href.replace("/", "")}`}
                   >
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 rounded-r bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.7)]" />
+                    )}
                     <Icon
                       className={cn(
-                        "w-5 h-5",
-                        isActive
-                          ? "text-sidebar-primary"
-                          : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70"
+                        "w-5 h-5 transition-colors",
+                        isActive ? "text-orange-400" : "text-foreground/45 group-hover:text-orange-400"
                       )}
                     />
-                    {item.label}
+                    <span>{t(item.labelKey)}</span>
                   </div>
                 </Link>
               );
@@ -86,39 +93,24 @@ export function Layout({ children }: LayoutProps) {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 px-3 py-2 text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors cursor-pointer rounded-md hover:bg-sidebar-accent/50">
-            <Settings className="w-5 h-5 text-sidebar-foreground/50" />
-            <span>Settings</span>
-          </div>
-          <div className="mt-4 flex items-center gap-3 px-3">
-            <div className="w-8 h-8 rounded-full bg-sidebar-primary/20 flex items-center justify-center text-sidebar-primary font-bold text-sm">
-              JD
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-sidebar-foreground">John Doe</span>
-              <span className="text-xs text-sidebar-foreground/50">Support Lead</span>
-            </div>
+        <div className="p-4 border-t border-white/8">
+          <div className="flex items-center gap-3 px-3 py-2 text-foreground/70 hover:text-orange-400 transition-colors cursor-pointer rounded-md hover:bg-white/5">
+            <Settings className="w-5 h-5 text-foreground/45" />
+            <span className="text-sm">{t("sidebar.settings")}</span>
           </div>
         </div>
       </aside>
 
-      {/* Mobile header */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        <header className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center justify-between px-6 md:hidden">
-          <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
-            <LogoIcon className="w-5 h-5 text-accent" />
-            <span>Resolve<span className="text-accent">AI</span></span>
-          </div>
-          <button
-            onClick={toggleTheme}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-        </header>
+      {/* Mobile sidebar header */}
+      <main className="flex-1 flex flex-col overflow-hidden relative z-10">
+        <div className="md:hidden h-14 px-4 flex items-center gap-3 glass-strong border-b border-white/8">
+          <img src={logoUrl} alt="ResolveAI" className="h-8 w-auto glow-logo" />
+        </div>
+
+        <HeaderBar />
+
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
-          <div className="max-w-6xl mx-auto w-full">{children}</div>
+          <div className="max-w-7xl mx-auto w-full">{children}</div>
         </div>
       </main>
     </div>
