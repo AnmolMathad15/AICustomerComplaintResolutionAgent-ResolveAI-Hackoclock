@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- HERO BANNER -->
-<img src="screenshots/banner.png" alt="ResolveAI Banner" width="100%" style="border-radius: 16px;" />
+<img src="hero-banner.png" alt="ResolveAI - AI-Powered Customer Complaint Resolution Agent" width="100%" />
 
 <br/>
 <br/>
@@ -25,7 +25,7 @@
 
 <br/>
 
-[🌐 Live Demo]() &nbsp;|&nbsp; [📖 API Docs](http://localhost:8000/docs) &nbsp;|&nbsp; [🎥 Demo Video](#) &nbsp;|&nbsp; [📄 Report / PPT](#)
+[🌐 Live Demo](https://ai-customer-complaint-resolution-agent-resolve--koalabunny1515.replit.app/) &nbsp;|&nbsp; [📖 API Docs](http://localhost:8000/docs) &nbsp;|&nbsp; [🎥 Demo Video](#) &nbsp;|&nbsp; [📄 Report / PPT](#)
 
 </div>
 
@@ -89,7 +89,11 @@ Customer types complaint
 
 | Dashboard Overview | AI Chat Assistant |
 |:---:|:---:|
-| ![Dashboard](screenshots/dashboard.png) | ![Chat](screenshots/chat.png) |
+| ![Dashboard](screenshots/<img width="950" height="423" alt="portal" src="https://github.com/user-attachments/assets/7bd6ba2c-4505-4e12-9a8d-aedab6f0770<img width="960" height="424" alt="dashboard" src="https://github.com/user-attachments/assets/7684fcad-10a9-485c-8f02-4750a5855e50" />
+" />![Uploading hero-banner.png…]()
+<img width="959" height="425" alt="complaints" src="https://github.com/user-attachments/assets/f44f2111-5ccc-4159-a3cb-93ccd4442584" />
+<img width="959" height="422" alt="chat" src="https://github.com/user-attachments/assets/ecc7057a-ac57-4866-813c-0ff1a1470d1f" />
+.png) | ![Chat](screenshots/chat.png) |
 
 | Complaint Management | Customer Profile |
 |:---:|:---:|
@@ -316,7 +320,22 @@ Manually trigger escalation for a ticket.
 
 ## 🏆 Built At
 
-<div align="center"><img width="1365" height="2048" alt="banner" src="https://github.com/user-attachments/assets/33d71676-19a2-4655-bb14-b19a7495b941" />
+<div align="center">
+
+**Hack0'Clock 2026** · KLE Institute of Technology · IEEE Computer Society
+
+*April 23–24, 2026 · Hubballi, Karnataka, India*
+
+**AI/ML Track — Problem Statement AI-19**
+
+</div>
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
 ---
 
 <div align="center">
