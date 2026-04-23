@@ -23,6 +23,7 @@ import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/language-provider";
+import { localizeType, localizeSeverity, localizeSentiment } from "@/lib/badge-labels";
 import { useCompany } from "@/lib/company-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -172,7 +173,7 @@ function ComplaintRow({
                 {complaint.ticketId}
               </span>
               <Badge className={getSeverityColor(complaint.severity)} variant="outline">
-                {complaint.severity}
+                {localizeSeverity(complaint.severity, t)}
               </Badge>
             </div>
             <Link
@@ -203,12 +204,12 @@ function ComplaintRow({
                 variant="secondary"
                 className="capitalize text-xs bg-orange-500/10 text-orange-300 border-orange-500/20"
               >
-                {complaint.complaintType.replace("_", " ")}
+                {localizeType(complaint.complaintType, t)}
               </Badge>
               <span
                 className={`text-xs font-medium capitalize ${getSentimentColor(complaint.sentiment)}`}
               >
-                {complaint.sentiment} {t("complaints.sentimentSuffix")}
+                {localizeSentiment(complaint.sentiment, t)} {t("complaints.sentimentSuffix")}
               </span>
               {complaint.resolutionOverride && (
                 <Badge

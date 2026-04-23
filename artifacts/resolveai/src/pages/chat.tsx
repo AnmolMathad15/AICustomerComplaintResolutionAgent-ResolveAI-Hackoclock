@@ -27,6 +27,7 @@ import { useT, useLanguage } from "@/components/language-provider";
 import { VoiceInput } from "@/components/voice-input";
 import { ExpandableText } from "@/components/expandable-text";
 import { localizeResolution, voiceLocaleFor } from "@/lib/localize-resolution";
+import { localizeType, localizeSeverity, localizeSentiment } from "@/lib/badge-labels";
 
 interface ChatMessage {
   id: string;
@@ -94,13 +95,13 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="font-mono text-[10px]">{result.ticketId}</Badge>
               <Badge className={getSeverityColor(result.severity)} variant="outline">
-                {result.severity}
+                {localizeSeverity(result.severity, t)}
               </Badge>
               <Badge variant="secondary" className="capitalize text-xs">
-                {result.complaintType.replace("_", " ")}
+                {localizeType(result.complaintType, t)}
               </Badge>
               <span className={cn("text-xs font-medium capitalize", getSentimentColor(result.sentiment))}>
-                {result.sentiment} sentiment
+                {localizeSentiment(result.sentiment, t)} {t("complaints.sentimentSuffix")}
               </span>
             </div>
           </div>

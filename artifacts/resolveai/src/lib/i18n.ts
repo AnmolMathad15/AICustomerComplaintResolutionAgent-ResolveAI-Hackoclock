@@ -82,7 +82,17 @@ export type TranslationKey =
   | "common.error"
   | "common.retry"
   | "common.viewFull"
-  | "common.showLess";
+  | "common.showLess"
+  | "types.billing"
+  | "types.refund"
+  | "types.technical"
+  | "types.delivery"
+  | "types.account"
+  | "types.product_quality"
+  | "types.other"
+  | "sentiment.positive"
+  | "sentiment.negative"
+  | "sentiment.neutral";
 
 type Dict = Record<TranslationKey, string>;
 
@@ -152,6 +162,16 @@ const en: Dict = {
   "common.retry": "Retry",
   "common.viewFull": "View Full",
   "common.showLess": "Show Less",
+  "types.billing": "Billing",
+  "types.refund": "Refund",
+  "types.technical": "Technical",
+  "types.delivery": "Delivery",
+  "types.account": "Account",
+  "types.product_quality": "Product Quality",
+  "types.other": "Other",
+  "sentiment.positive": "positive",
+  "sentiment.negative": "negative",
+  "sentiment.neutral": "neutral",
 };
 
 // Helper: build translation dictionary by overriding English defaults.
@@ -223,6 +243,16 @@ const hi: Dict = T({
   "common.retry": "पुनः प्रयास",
   "common.viewFull": "पूरा देखें",
   "common.showLess": "कम दिखाएं",
+  "types.billing": "बिलिंग",
+  "types.refund": "रिफ़ंड",
+  "types.technical": "तकनीकी",
+  "types.delivery": "डिलीवरी",
+  "types.account": "खाता",
+  "types.product_quality": "उत्पाद गुणवत्ता",
+  "types.other": "अन्य",
+  "sentiment.positive": "सकारात्मक",
+  "sentiment.negative": "नकारात्मक",
+  "sentiment.neutral": "तटस्थ",
 });
 
 const kn: Dict = T({
@@ -291,6 +321,16 @@ const kn: Dict = T({
   "common.retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
   "common.viewFull": "ಪೂರ್ಣ ನೋಡಿ",
   "common.showLess": "ಕಡಿಮೆ ತೋರಿಸಿ",
+  "types.billing": "ಬಿಲ್ಲಿಂಗ್",
+  "types.refund": "ಮರುಪಾವತಿ",
+  "types.technical": "ತಾಂತ್ರಿಕ",
+  "types.delivery": "ವಿತರಣೆ",
+  "types.account": "ಖಾತೆ",
+  "types.product_quality": "ಉತ್ಪನ್ನ ಗುಣಮಟ್ಟ",
+  "types.other": "ಇತರೆ",
+  "sentiment.positive": "ಧನಾತ್ಮಕ",
+  "sentiment.negative": "ಋಣಾತ್ಮಕ",
+  "sentiment.neutral": "ತಟಸ್ಥ",
 });
 
 const ta: Dict = T({
