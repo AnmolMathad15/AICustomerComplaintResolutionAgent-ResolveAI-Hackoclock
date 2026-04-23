@@ -1,0 +1,199 @@
+You are a senior React + Node.js engineer.
+
+I have an existing SaaS app called "ResolveAI".
+The UI is already built and working. DO NOT rewrite it.
+
+Your job is to FIX multilingual support and voice behavior **correctly and completely**, without breaking existing functionality.
+
+---
+
+🎯 CORE PROBLEM
+
+Language switching is inconsistent:
+
+* Some pages (Dashboard) update ✔
+* Other pages (Customer Portal, Landing) DO NOT ❌
+* Voice input does not adapt to selected language ❌
+
+This means:
+
+* Language state exists but is NOT properly consumed everywhere
+* Components are using hardcoded text or not re-rendering
+
+---
+
+⚠️ STRICT RULES
+
+* DO NOT rewrite UI
+* DO NOT change layout/design
+* DO NOT remove features
+* ONLY fix state flow, reactivity, and language mapping
+* Make minimal, safe, modular changes
+
+---
+
+## ✅ TASK 1: FIX GLOBAL LANGUAGE STATE (ROOT FIX)
+
+1. Ensure a single global LanguageContext exists:
+
+   const LanguageContext = createContext();
+
+2. It must provide:
+
+   * language (state)
+   * changeLanguage (function)
+
+3. Persist language using localStorage
+
+4. Wrap ENTIRE app:
+
+   <LanguageProvider>
+     <App />
+   </LanguageProvider>
+
+⚠️ CRITICAL:
+Verify that ALL routes/pages are inside this provider
+
+---
+
+## ✅ TASK 2: FORCE ALL PAGES TO REACT TO LANGUAGE
+
+Problem:
+Some components are not re-rendering
+
+Fix:
+
+For EVERY page/component:
+
+* Import and use:
+
+  const { language } = useLanguage();
+
+Even if not directly used → this forces re-render on language change
+
+---
+
+## ✅ TASK 3: REMOVE HARDCODED TEXT (MAIN BUG)
+
+Problem:
+UI text is static → does not update
+
+Fix ONLY visible user-facing text:
+
+Replace:
+
+  <h1>Pick a company to continue</h1>
+
+With:
+
+const t = {
+en: "Pick a company to continue",
+kn: "ಮುಂದುವರಿಸಲು ಕಂಪನಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+hi: "आगे बढ़ने के लिए कंपनी चुनें"
+};
+
+  <h1>{t[language]}</h1>
+
+Apply this to:
+
+* Headings
+* Buttons
+* Labels
+* Placeholders
+
+⚠️ DO NOT refactor entire app — only visible text
+
+---
+
+## ✅ TASK 4: FIX LANGUAGE SWITCH DROPDOWN
+
+Ensure dropdown correctly updates global state:
+
+const { changeLanguage } = useLanguage();
+
+onChange={(e) => changeLanguage(e.target.value)}
+
+Also:
+
+* Sync selected value with state
+* Store in localStorage
+
+---
+
+## ✅ TASK 5: DEBUG GUARANTEE (MANDATORY)
+
+Add temporary logs:
+
+console.log("LANG:", language);
+
+Verify:
+
+* Language changes globally
+* All pages re-render
+
+---
+
+## ✅ TASK 6: FIX VOICE INPUT LANGUAGE
+
+Problem:
+Voice input always uses English
+
+Fix:
+
+Create mapping:
+
+const langMap = {
+en: "en-IN",
+hi: "hi-IN",
+kn: "kn-IN"
+};
+
+Then update:
+
+recognition.lang = langMap[language];
+
+Ensure:
+
+* Updates dynamically when language changes
+* Transcript correctly appears in input field
+
+---
+
+## ✅ TASK 7: AI RESPONSE LANGUAGE FIX
+
+Modify ONLY prompt:
+
+"Generate the response in ${selectedLanguage}"
+
+Do NOT change API logic
+
+---
+
+## ✅ EXPECTED RESULT
+
+After fix:
+
+✔ Entire UI switches language consistently
+✔ Portal + Landing + Dashboard all update
+✔ Voice input works in selected language
+✔ AI replies in same language
+✔ No UI or feature break
+
+---
+
+## ✅ OUTPUT FORMAT
+
+Provide:
+
+1. Exact files to modify
+2. Minimal code snippets (no full rewrites)
+3. Clear integration steps
+4. Explanation of root fix
+
+---
+
+IMPORTANT:
+Focus on fixing reactivity and state flow — not just translation.
+
+DO NOT produce partial solution.
+This must work across the entire app.

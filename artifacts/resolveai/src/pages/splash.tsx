@@ -30,10 +30,10 @@ export default function Splash() {
   );
 
   const features = [
-    { icon: Zap, label: "AI Powered Resolutions" },
-    { icon: Brain, label: "Context Awareness" },
-    { icon: ShieldCheck, label: "Policy Driven Decisions" },
-    { icon: TrendingUp, label: "Real-time Escalation" },
+    { icon: Zap, label: t("splash.feature.aiPowered") },
+    { icon: Brain, label: t("splash.feature.context") },
+    { icon: ShieldCheck, label: t("splash.feature.policy") },
+    { icon: TrendingUp, label: t("splash.feature.realtime") },
   ];
 
   return (
@@ -267,7 +267,7 @@ export default function Splash() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-xs uppercase tracking-[0.4em] text-white/50 mb-3"
         >
-          Welcome to
+          {t("splash.welcomeTo")}
         </motion.p>
 
         {/* Main heading */}
@@ -304,8 +304,7 @@ export default function Splash() {
           transition={{ duration: 0.6, delay: 0.75 }}
           className="mt-3 max-w-xl text-sm md:text-base text-white/60 leading-relaxed"
         >
-          Intelligent complaint resolution that understands, analyzes, and resolves
-          instantly.
+          {t("splash.subtext")}
         </motion.p>
 
         {/* CTA Button */}

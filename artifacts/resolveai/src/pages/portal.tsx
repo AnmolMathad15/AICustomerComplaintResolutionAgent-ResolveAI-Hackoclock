@@ -24,7 +24,7 @@ import type { AnalyzeComplaintResponse, Company } from "@workspace/api-client-re
 import { useToast } from "@/hooks/use-toast";
 import { BackgroundAmbient } from "@/components/background-ambient";
 import { LanguageSelector } from "@/components/language-selector";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage, useT } from "@/components/language-provider";
 import { ExpandableText } from "@/components/expandable-text";
 import { localizeResolution, voiceLocaleFor } from "@/lib/localize-resolution";
 import { VoiceInput } from "@/components/voice-input";
@@ -33,19 +33,20 @@ import { cn } from "@/lib/utils";
 const CUSTOMER_KEY = "resolveai.portal.customerId";
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useT();
   const map: Record<string, { label: string; cls: string; icon: typeof CheckCircle2 }> = {
     resolved: {
-      label: "AI Resolved",
+      label: t("portal.status.resolved"),
       cls: "border-emerald-500/40 text-emerald-300 bg-emerald-500/10",
       icon: CheckCircle2,
     },
     escalated: {
-      label: "Escalated",
+      label: t("portal.status.escalated"),
       cls: "border-red-500/40 text-red-300 bg-red-500/10",
       icon: AlertTriangle,
     },
     pending: {
-      label: "Pending",
+      label: t("portal.status.pending"),
       cls: "border-amber-500/40 text-amber-300 bg-amber-500/10",
       icon: Clock,
     },
@@ -68,6 +69,7 @@ export default function Portal() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { language } = useLanguage();
+  const t = useT();
   const { data: companies = [] } = useListCompanies();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [customerId] = useState(() => {
@@ -111,19 +113,19 @@ export default function Portal() {
       if (prev && prev !== status) {
         if (status === "escalated") {
           toast({
-            title: "Your complaint has been escalated",
-            description: `Ticket ${c.ticketId} assigned to ${c.assignedAgent ?? "a human agent"}.`,
+            title: t("portal.toast.escalated"),
+            description: `${c.ticketId} ${t("portal.toast.escalatedDesc")} ${c.assignedAgent ?? t("portal.toast.aHumanAgent")}.`,
           });
         } else if (status === "resolved") {
           toast({
-            title: "Resolved by AI",
-            description: `Ticket ${c.ticketId} was resolved automatically.`,
+            title: t("portal.toast.resolved"),
+            description: `${c.ticketId} ${t("portal.toast.resolvedDesc")}`,
           });
         }
       }
       prevStatuses.current.set(c.ticketId, status);
     });
-  }, [complaints, toast]);
+  }, [complaints, toast, t]);
 
   const submit = () => {
     if (!draft.trim() || !selectedCompanyId || isPending) return;
@@ -135,14 +137,14 @@ export default function Portal() {
           setDraft("");
           refetch();
           toast({
-            title: result.shouldEscalate ? "Routed to a human agent" : "Resolved instantly",
-            description: `Ticket ${result.ticketId} created.`,
+            title: result.shouldEscalate ? t("portal.toast.routedHuman") : t("portal.toast.resolvedInstantly"),
+            description: `${result.ticketId} ${t("portal.toast.ticketCreated")}`,
           });
         },
         onError: () => {
           toast({
-            title: "Submission failed",
-            description: "Please try again.",
+            title: t("portal.toast.failed"),
+            description: t("portal.toast.tryAgain"),
           });
         },
       }
@@ -162,7 +164,7 @@ export default function Portal() {
             className="h-9 px-3 rounded-full glass border border-white/10 text-xs text-foreground/70 hover:text-orange-300 hover:border-orange-500/30 transition-all"
           >
             <ArrowLeft className="inline w-3.5 h-3.5 mr-1" />
-            Home
+            {t("portal.home")}
           </button>
         </div>
 
@@ -175,16 +177,16 @@ export default function Portal() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-white/10 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80 mb-5">
               <Sparkles className="w-3 h-3" />
-              Customer Portal
+              {t("portal.customerPortal")}
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Pick a company to continue
+              {t("portal.pickCompany")}
             </h1>
             <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
-              Submit a complaint, watch our AI resolve it, and track every status change in real time.
+              {t("portal.pickCompanySubtitle")}
             </p>
             <p className="text-[11px] text-muted-foreground mt-4">
-              Signed in as <span className="text-orange-300 font-mono">{customerId}</span>
+              {t("portal.signedInAs")} <span className="text-orange-300 font-mono">{customerId}</span>
             </p>
           </motion.div>
 
@@ -221,7 +223,7 @@ export default function Portal() {
                   <div className="text-xs text-muted-foreground mt-0.5">{c.industry}</div>
                   <div className="mt-4 flex items-center gap-1.5 text-[11px] text-cyan-300/80">
                     <Clock className="w-3 h-3" />
-                    SLA {c.slaHours}h • {c.agents.length} agents
+                    SLA {c.slaHours}h • {c.agents.length} {t("portal.agentsSuffix")}
                   </div>
                 </div>
               </motion.button>
@@ -245,7 +247,7 @@ export default function Portal() {
             className="h-8 px-3 rounded-full glass border border-white/10 text-xs hover:border-orange-500/30 transition-all"
           >
             <ArrowLeft className="inline w-3.5 h-3.5 mr-1" />
-            Switch
+            {t("portal.switch")}
           </button>
           <div className="flex items-center gap-2">
             <span
@@ -269,7 +271,7 @@ export default function Portal() {
               <User className="w-4 h-4" />
             </div>
             <div className="hidden md:flex flex-col leading-tight">
-              <span className="text-xs font-medium">Customer</span>
+              <span className="text-xs font-medium">{t("portal.customer")}</span>
               <span className="text-[10px] text-muted-foreground font-mono">{customerId}</span>
             </div>
           </div>
@@ -286,11 +288,10 @@ export default function Portal() {
           >
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-orange-400" />
-              <h2 className="font-semibold">Submit a complaint</h2>
+              <h2 className="font-semibold">{t("portal.submitTitle")}</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              Describe your issue. Our AI will classify, assess sentiment, and resolve or
-              route it to {selectedCompany?.name}'s support team.
+              {t("portal.submitDesc")}
             </p>
             <div className="relative">
               <textarea
@@ -300,7 +301,7 @@ export default function Portal() {
                   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
                 }}
                 rows={4}
-                placeholder="e.g. My order was delivered damaged, and I'd like a refund within 3 days."
+                placeholder={t("portal.placeholder")}
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-500/40 resize-none"
                 data-testid="portal-complaint-input"
               />
@@ -313,7 +314,7 @@ export default function Portal() {
                     }
                   />
                   <span className="text-[11px] text-muted-foreground">
-                    ⌘ / Ctrl + Enter to submit
+                    {t("portal.shortcutHint")}
                   </span>
                 </div>
                 <button
@@ -329,11 +330,11 @@ export default function Portal() {
                   {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Analyzing…
+                      {t("portal.analyzing")}
                     </>
                   ) : (
                     <>
-                      Send <Send className="w-4 h-4" />
+                      {t("portal.send")} <Send className="w-4 h-4" />
                     </>
                   )}
                 </button>
@@ -351,7 +352,7 @@ export default function Portal() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                <h3 className="font-semibold text-sm">{selectedCompany.name} policies</h3>
+                <h3 className="font-semibold text-sm">{selectedCompany.name} {t("portal.policiesSuffix")}</h3>
               </div>
               <ul className="space-y-2">
                 {selectedCompany.policies.map((p, i) => (
@@ -374,18 +375,18 @@ export default function Portal() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-orange-400" />
-                <h3 className="font-semibold text-sm">Live Timeline</h3>
+                <h3 className="font-semibold text-sm">{t("portal.liveTimeline")}</h3>
               </div>
               <span className="inline-flex items-center gap-1.5 text-[10px] text-emerald-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ping-dot" />
-                LIVE
+                {t("portal.live")}
               </span>
             </div>
 
             {complaints.length === 0 ? (
               <div className="text-center py-10 text-muted-foreground text-sm">
                 <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                No complaints yet. Submit one to begin.
+                {t("portal.empty")}
               </div>
             ) : (
               <div className="relative space-y-3 max-h-[520px] overflow-y-auto pr-1">
@@ -416,11 +417,11 @@ export default function Portal() {
                           <span className="capitalize">
                             {c.complaintType.replace("_", " ")}
                           </span>
-                          <span>{(c.confidenceScore * 100).toFixed(0)}% conf.</span>
+                          <span>{(c.confidenceScore * 100).toFixed(0)}% {t("portal.confSuffix")}</span>
                         </div>
                         {c.assignedAgent && (
                           <div className="mt-2 pt-2 border-t border-white/5 text-[11px] flex items-center gap-1.5">
-                            <span className="text-muted-foreground">Agent:</span>
+                            <span className="text-muted-foreground">{t("portal.agent")}</span>
                             <span className="text-orange-300 font-medium">
                               {c.assignedAgent}
                             </span>
