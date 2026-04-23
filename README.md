@@ -1,9 +1,9 @@
 <div align="center">
 
 <!-- HERO BANNER -->
-![Uploading hero-banner.png…]()
+<img src="assets/hero-banner.png" width="100%" />
 
-<br/>
+</div>
 <br/>
 
 <img src="https://img.shields.io/badge/⚡_Hack0'Clock-2026-blueviolet?style=for-the-badge&labelColor=0d0d0d" />
@@ -83,23 +83,29 @@ Customer types complaint
 
 ---
 
-## 🖼️ Screenshots
+## 📸 Screenshots
 
-<div align="center">
+### 🧭 Dashboard Overview
+The central control panel showing real-time complaint metrics, AI insights, and system performance.
 
-| Dashboard Overview | AI Chat Assistant |
-|:---:|:---:|
-| ![Dashboard](screenshots/<img width="950" height="423" alt="portal" src="https://github.com/user-attachments/assets/7bd6ba2c-4505-4e12-9a8d-aedab6f0770<img width="960" height="424" alt="dashboard" src="https://github.com/user-attachments/assets/7684fcad-10a9-485c-8f02-4750a5855e50" />
-" />![Uploading hero-banner.png…]()
-<img width="959" height="425" alt="complaints" src="https://github.com/user-attachments/assets/f44f2111-5ccc-4159-a3cb-93ccd4442584" />
-<img width="959" height="422" alt="chat" src="https://github.com/user-attachments/assets/ecc7057a-ac57-4866-813c-0ff1a1470d1f" />
-.png) | ![Chat](screenshots/chat.png) |
+<img src="assets/dashboard.png" width="100%" />
 
-| Complaint Management | Customer Profile |
-|:---:|:---:|
-| ![Complaints](screenshots/complaints.png) | ![Portal](screenshots/portal.png) |
+---
 
-</div>
+### 📂 Complaint Management
+View, filter, and manage customer complaints with priority levels, sentiment tags, and status tracking.
+
+<img src="assets/complaints.png" width="100%" />
+
+---
+
+### 🤖 AI Chat Assistant
+Users can submit complaints conversationally, and the AI provides instant classification and resolution suggestions.
+
+<img src="assets/chat.png" width="100%" /><img width="959" height="425" alt="complaints" src="https://github.com/user-attachments/assets/67a04c7a-f65c-434f-907a-81e3fa79e19a" />
+<img width="959" height="422" alt="chat" src="https://github.com/user-attachments/assets/e65ad074-0253-4e8e-82bf-f196bb8eb742" />
+<img width="959" height="425" alt="complaints" src="https://github.com/user-attachments/assets/0a991803-695e-4ebf-a14d-0841bd6c45dd" />
+<img width="960" height="424" alt="dashboard" src="https://github.com/user-attachments/assets/506e1481-237f-4440-a8aa-053df0684aba" />
 
 ---
 
