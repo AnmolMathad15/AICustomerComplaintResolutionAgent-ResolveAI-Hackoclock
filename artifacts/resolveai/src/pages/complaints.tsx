@@ -27,6 +27,7 @@ import { useCompany } from "@/lib/company-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { SlaCountdown } from "@/components/sla-countdown";
+import { PriorityAlert } from "@/components/priority-alert";
 
 type FilterKey = "all" | "resolved" | "escalated" | "pending" | "in_progress";
 type SortKey = "recent" | "priority";
@@ -490,7 +491,8 @@ export default function Complaints() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <PriorityAlert complaints={complaints ?? []} />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
