@@ -1,0 +1,143 @@
+You are a senior full-stack engineer.
+
+I already have a working React + Node.js AI SaaS app called "ResolveAI".
+DO NOT rewrite or break existing code. Only make minimal, safe, incremental improvements.
+
+---
+
+🎯 OBJECTIVE:
+Fix the following issues WITHOUT changing existing architecture, UI structure, or working features.
+
+---
+
+🧩 ISSUE 1: AI RESPONSE TEXT IS TRUNCATED
+
+Problem:
+AI responses are cut off in UI (e.g., "...").
+
+Requirements:
+
+* Add "View Full / Show Less" toggle for long responses
+* Keep existing UI design intact
+* Do NOT remove truncation, only enhance UX
+
+Implementation:
+
+* If text length > 120 characters → truncate
+* Add toggle button
+* Smooth UX (no layout breaking)
+
+---
+
+🌍 ISSUE 2: LANGUAGE SWITCH NOT APPLYING TO FULL WEBSITE
+
+Problem:
+Only partial UI text changes language
+
+Requirements:
+
+* Implement proper global translation system using i18next
+* Do NOT rewrite components, only wrap text safely
+
+Steps:
+
+1. Install i18next + react-i18next
+2. Create translation files:
+
+   * en.json
+   * hi.json
+   * kn.json
+3. Replace hardcoded UI strings with t("key") ONLY where safe
+4. Keep existing styling unchanged
+
+Language switch:
+
+* Must update entire UI instantly
+* Persist selected language in state/localStorage
+
+---
+
+🎙 ISSUE 3: VOICE INPUT NOT ACCURATE
+
+Problem:
+Voice recognition is unreliable
+
+Requirements:
+
+* Improve accuracy without breaking current flow
+
+Implementation:
+
+* Keep existing voice feature
+* Add fallback support using OpenAI Whisper API (if audio file available)
+* Otherwise improve browser SpeechRecognition config
+
+---
+
+🌐 ISSUE 4: VOICE LANGUAGE NOT SYNCED WITH UI LANGUAGE
+
+Problem:
+Voice input does not change based on selected language
+
+Requirements:
+
+* Sync voice recognition with selected language
+
+Implementation:
+Create language mapping:
+
+const langMap = {
+en: "en-IN",
+hi: "hi-IN",
+kn: "kn-IN"
+};
+
+* When user switches language:
+
+  * Update speech recognition language
+  * Ensure correct transcription language
+
+---
+
+🧠 ISSUE 5: AI RESPONSE LANGUAGE NOT MATCHING UI
+
+Problem:
+AI always responds in one language
+
+Requirements:
+
+* Generate AI responses in selected language
+
+Implementation:
+
+* Modify existing OpenAI prompt ONLY
+* Add language variable:
+
+"Generate response in ${selectedLanguage}"
+
+* DO NOT change API structure
+
+---
+
+⚠️ CONSTRAINTS (VERY IMPORTANT)
+
+* DO NOT break existing UI
+* DO NOT refactor entire components
+* DO NOT remove current features
+* ONLY add enhancements
+* Keep code modular and clean
+* Ensure backward compatibility
+
+---
+
+✅ OUTPUT REQUIRED:
+
+1. Minimal code changes for each issue
+2. Exact files to modify
+3. Safe integration steps
+4. No unnecessary rewrites
+
+---
+
+Goal:
+Make the system feel production-ready while preserving all existing functionality.

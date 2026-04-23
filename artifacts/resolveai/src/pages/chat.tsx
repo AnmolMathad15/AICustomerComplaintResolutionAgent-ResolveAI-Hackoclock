@@ -23,8 +23,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useT } from "@/components/language-provider";
+import { useT, useLanguage } from "@/components/language-provider";
 import { VoiceInput } from "@/components/voice-input";
+import { ExpandableText } from "@/components/expandable-text";
+import { localizeResolution, voiceLocaleFor } from "@/lib/localize-resolution";
 
 interface ChatMessage {
   id: string;
@@ -77,6 +79,8 @@ function UserBubble({ message }: { message: ChatMessage }) {
 function AiResultBubble({ message }: { message: ChatMessage }) {
   const result = message.result!;
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const t = useT();
+  const { language } = useLanguage();
 
   return (
     <div className="flex gap-3 items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -109,7 +113,12 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 AI Resolution
               </div>
-              <p className="text-sm leading-relaxed text-foreground">{result.resolution}</p>
+              <ExpandableText
+                text={localizeResolution(result.resolution, language)}
+                className="text-foreground"
+                showMoreLabel={t("common.viewFull" as any) || "View Full"}
+                showLessLabel={t("common.showLess" as any) || "Show Less"}
+              />
             </div>
 
             {/* Confidence + Frustration */}
@@ -280,6 +289,7 @@ export default function Chat() {
   };
 
   const t = useT();
+  const { language } = useLanguage();
   return (
     <Layout pageTitle="Chat AI">
       <div className="flex flex-col h-[calc(100vh-10rem)] -mt-2">
@@ -368,8 +378,9 @@ export default function Chat() {
           />
           <VoiceInput
             className="h-[52px] w-[52px] shrink-0"
-            onTranscript={(t) =>
-              setInput((prev) => (prev ? `${prev} ${t}` : t))
+            lang={voiceLocaleFor(language)}
+            onTranscript={(txt) =>
+              setInput((prev) => (prev ? `${prev} ${txt}` : txt))
             }
           />
           <Button

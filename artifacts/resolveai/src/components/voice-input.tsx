@@ -16,25 +16,41 @@ type SpeechRecognitionLike = {
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
   className?: string;
+  /** BCP-47 locale, e.g. "en-IN", "hi-IN", "kn-IN". Hot-swaps when changed. */
   lang?: string;
   title?: string;
 }
+
+type SpeechRecognitionExtended = SpeechRecognitionLike & {
+  maxAlternatives?: number;
+};
 
 /**
  * Browser Web Speech API mic button. Pure non-breaking add-on:
  * if the browser does not expose SpeechRecognition, the button hides itself.
  * The transcript is appended to whatever text is already in the input —
  * the typing experience is preserved.
+ *
+ * Accuracy improvements:
+ * - Uses interim results to surface partial transcripts as they arrive
+ * - Picks the highest-confidence alternative from up to 3 candidates
+ * - Locale is hot-swappable via `lang` prop (e.g. when UI language changes)
  */
 export function VoiceInput({
   onTranscript,
   className,
-  lang = "en-US",
+  lang = "en-IN",
   title = "Dictate complaint",
 }: VoiceInputProps) {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  // Keep the latest onTranscript callback in a ref so we don't tear down the
+  // recognizer every render.
+  const onTranscriptRef = useRef(onTranscript);
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
+  const recognitionRef = useRef<SpeechRecognitionExtended | null>(null);
 
   useEffect(() => {
     const Ctor =
@@ -44,16 +60,28 @@ export function VoiceInput({
       null;
     if (!Ctor) return;
     setSupported(true);
-    const rec: SpeechRecognitionLike = new Ctor();
+    const rec: SpeechRecognitionExtended = new Ctor();
     rec.continuous = false;
-    rec.interimResults = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 3;
     rec.lang = lang;
     rec.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((r: any) => r[0].transcript)
-        .join(" ")
-        .trim();
-      if (transcript) onTranscript(transcript);
+      // Take the FINAL result with highest confidence across alternatives.
+      let best = "";
+      let bestConfidence = -1;
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result.isFinal) continue;
+        for (let j = 0; j < result.length; j++) {
+          const alt = result[j];
+          if ((alt.confidence ?? 0) > bestConfidence) {
+            bestConfidence = alt.confidence ?? 0;
+            best = alt.transcript;
+          }
+        }
+      }
+      const transcript = best.trim();
+      if (transcript) onTranscriptRef.current(transcript);
     };
     rec.onerror = () => setListening(false);
     rec.onend = () => setListening(false);
@@ -65,8 +93,6 @@ export function VoiceInput({
         /* ignore */
       }
     };
-    // onTranscript intentionally excluded — captured via ref of latest closure
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
   if (!supported) return null;

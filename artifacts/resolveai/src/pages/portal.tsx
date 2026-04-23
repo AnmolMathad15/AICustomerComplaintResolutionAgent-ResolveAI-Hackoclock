@@ -24,6 +24,9 @@ import type { AnalyzeComplaintResponse, Company } from "@workspace/api-client-re
 import { useToast } from "@/hooks/use-toast";
 import { BackgroundAmbient } from "@/components/background-ambient";
 import { LanguageSelector } from "@/components/language-selector";
+import { useLanguage } from "@/components/language-provider";
+import { ExpandableText } from "@/components/expandable-text";
+import { localizeResolution, voiceLocaleFor } from "@/lib/localize-resolution";
 import { VoiceInput } from "@/components/voice-input";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +67,7 @@ function StatusBadge({ status }: { status: string }) {
 export default function Portal() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { language } = useLanguage();
   const { data: companies = [] } = useListCompanies();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [customerId] = useState(() => {
@@ -303,8 +307,9 @@ export default function Portal() {
               <div className="flex items-center justify-between mt-3 gap-2">
                 <div className="flex items-center gap-2">
                   <VoiceInput
-                    onTranscript={(t) =>
-                      setDraft((prev) => (prev ? `${prev} ${t}` : t))
+                    lang={voiceLocaleFor(language)}
+                    onTranscript={(txt) =>
+                      setDraft((prev) => (prev ? `${prev} ${txt}` : txt))
                     }
                   />
                   <span className="text-[11px] text-muted-foreground">
@@ -421,8 +426,12 @@ export default function Portal() {
                             </span>
                           </div>
                         )}
-                        <div className="mt-2 text-[11px] text-foreground/70 line-clamp-2 italic">
-                          "{c.resolution}"
+                        <div className="mt-2 text-[11px] text-foreground/70 italic">
+                          <ExpandableText
+                            text={`"${localizeResolution(c.resolution, language)}"`}
+                            threshold={120}
+                            className="text-foreground/70"
+                          />
                         </div>
                       </motion.div>
                     );
