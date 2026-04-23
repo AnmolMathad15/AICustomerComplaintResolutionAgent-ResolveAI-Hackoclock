@@ -1,3 +1,4 @@
+<img width="600" height="480" alt="resolveai-logo" src="https://github.com/user-attachments/assets/ffb9c35b-b4ac-436a-aed0-de752d8a781a" />
 <div align="center">
 
 <img 
