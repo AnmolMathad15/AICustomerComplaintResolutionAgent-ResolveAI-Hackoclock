@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { useT } from "@/components/language-provider";
 
@@ -31,6 +32,7 @@ export function HeaderBar() {
       <div className="flex items-center gap-2 md:gap-3">
         <CompanySwitcher />
         <LanguageSelector />
+        <ThemeToggle />
 
         <button
           aria-label={t("header.notifications")}
