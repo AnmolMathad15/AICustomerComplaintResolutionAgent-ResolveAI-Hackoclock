@@ -1,0 +1,165 @@
+I have a logo image file called "resolveai-logo.png". 
+It contains:
+- An AI human face made of circuit/pixel fragments
+- Text "RESOLVEAI" in white
+- Tagline "Where AI Meets Real Customer Care" in cyan
+- Gradient colors: cyan (#06B6D4) → purple (#7C3AED) → pink (#EC4899)
+- Dark navy background (#0D0B2A)
+
+DO THE FOLLOWING ACROSS THE ENTIRE APP:
+
+═══════════════════════════════════
+1. SIDEBAR LOGO
+═══════════════════════════════════
+- Replace current text logo with the image file
+- Size: 140px wide, auto height
+- Add glow effect:
+  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.8))
+         drop-shadow(0 0 24px rgba(6, 182, 212, 0.4))
+- On hover: 
+  filter: drop-shadow(0 0 20px rgba(99,102,241,1))
+  transform: scale(1.03)
+  transition: all 0.3s ease
+
+═══════════════════════════════════
+2. FULL PAGE BACKGROUND (ALL PAGES)
+═══════════════════════════════════
+Apply this to the root layout background:
+
+- Use the logo's AI face as a WATERMARK background:
+  position: fixed
+  top: 50%
+  left: 60%
+  transform: translate(-50%, -50%)
+  width: 700px
+  opacity: 0.04
+  filter: blur(2px) saturate(2)
+  z-index: 0
+  pointer-events: none
+
+- Behind the watermark, add this gradient:
+  background: linear-gradient(
+    135deg,
+    #060614 0%,
+    #0D0B2A 30%,
+    #0a0f1e 60%,
+    #080618 100%
+  )
+
+- Add animated gradient orbs in background:
+
+  Orb 1 (cyan):
+  position: fixed, top: -200px, left: -200px
+  width: 600px, height: 600px
+  background: radial-gradient(circle, 
+    rgba(6,182,212,0.12) 0%, transparent 70%)
+  animation: float1 8s ease-in-out infinite
+
+  Orb 2 (purple):
+  position: fixed, bottom: -200px, right: -100px
+  width: 700px, height: 700px
+  background: radial-gradient(circle,
+    rgba(124,58,237,0.10) 0%, transparent 70%)
+  animation: float2 10s ease-in-out infinite
+
+  Orb 3 (pink):
+  position: fixed, top: 40%, left: 30%
+  width: 400px, height: 400px
+  background: radial-gradient(circle,
+    rgba(236,72,153,0.06) 0%, transparent 70%)
+  animation: float3 12s ease-in-out infinite
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0) }
+    50% { transform: translate(30px, 30px) }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0) }
+    50% { transform: translate(-30px, -20px) }
+  }
+  @keyframes float3 {
+    0%, 100% { transform: translate(0, 0) }
+    50% { transform: translate(20px, -30px) }
+  }
+
+- Add subtle grid overlay on top of everything:
+  background-image: 
+    linear-gradient(rgba(99,102,241,0.03) 1px, 
+                    transparent 1px),
+    linear-gradient(90deg, 
+                    rgba(99,102,241,0.03) 1px, 
+                    transparent 1px)
+  background-size: 40px 40px
+  position: fixed
+  inset: 0
+  z-index: 0
+  pointer-events: none
+
+All page content must be z-index: 1 or higher
+so it appears above background layers.
+
+═══════════════════════════════════
+3. LOGIN / SPLASH SCREEN (BONUS)
+═══════════════════════════════════
+Add a splash/landing page at route "/" that shows:
+
+- Full screen dark background with all orb effects
+- Center: Large logo (300px wide) with strong glow:
+  filter: drop-shadow(0 0 30px rgba(99,102,241,0.9))
+          drop-shadow(0 0 60px rgba(6,182,212,0.5))
+          drop-shadow(0 0 90px rgba(236,72,153,0.3))
+
+- Entrance animation:
+  Logo fades in + scales from 0.8 to 1.0
+  over 1.2s with ease-out
+
+- Tagline below logo:
+  "Where AI Meets Real Customer Care"
+  Color: #06B6D4
+  Font size: 18px
+  Letter spacing: 3px
+  Fade in after 0.5s delay
+
+- "Enter Dashboard" button below:
+  Gradient: linear-gradient(135deg, #7C3AED, #06B6D4)
+  Padding: 14px 40px
+  Border radius: 50px
+  Glow: box-shadow: 0 0 20px rgba(124,58,237,0.5)
+  On hover: box-shadow: 0 0 40px rgba(124,58,237,0.8)
+           transform: scale(1.05)
+  Fade in after 1s delay
+  On click: navigate to /dashboard
+
+═══════════════════════════════════
+4. FAVICON
+═══════════════════════════════════
+- Use the AI face portion of the logo as favicon
+- Set in /app/layout.tsx:
+  <link rel="icon" href="/resolveai-logo.png" />
+
+═══════════════════════════════════
+5. PAGE TITLES
+═══════════════════════════════════
+Update browser tab titles:
+- Dashboard: "ResolveAI | Command Center"
+- Chat: "ResolveAI | Chat AI"
+- Analyze: "ResolveAI | Analyze"
+- Complaints: "ResolveAI | Complaints"
+- Customers: "ResolveAI | Customers"
+
+═══════════════════════════════════
+6. LOADING SCREEN
+═══════════════════════════════════
+When app first loads, show a 2s splash:
+- Black screen
+- Logo appears with glow pulse animation
+- Loading bar underneath:
+  gradient fill: cyan → purple
+  width animates 0% → 100% over 1.8s
+- Fades out, reveals main app
+
+Make sure the logo image is imported correctly
+from /public/resolveai-logo.png
+Use Next.js <Image> component where possible.
+Apply background effects in the root layout.tsx
+so they persist across ALL page navigations.

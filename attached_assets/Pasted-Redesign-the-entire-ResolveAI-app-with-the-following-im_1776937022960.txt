@@ -1,0 +1,231 @@
+Redesign the entire ResolveAI app with the following 
+improvements. Keep all existing functionality intact, 
+only enhance the UI/UX:
+
+═══════════════════════════════════
+1. GLASSMORPHISM DESIGN SYSTEM
+═══════════════════════════════════
+- All cards: 
+  background: rgba(255, 255, 255, 0.05)
+  backdrop-filter: blur(20px)
+  border: 1px solid rgba(255, 255, 255, 0.1)
+  border-radius: 16px
+
+- Sidebar:
+  background: rgba(10, 10, 20, 0.8)
+  backdrop-filter: blur(30px)
+  border-right: 1px solid rgba(255,255,255,0.08)
+
+- Overall background: 
+  Deep space gradient:
+  background: linear-gradient(135deg, #0a0a1a 0%, 
+  #0d0d2b 50%, #0a1628 100%)
+  Add subtle animated star particles in background
+
+═══════════════════════════════════
+2. GLOW EFFECTS
+═══════════════════════════════════
+- ResolveAI logo: 
+  text-shadow: 0 0 20px #f97316, 0 0 40px #f97316
+  
+- Active sidebar item:
+  box-shadow: inset 3px 0 0 #f97316, 
+  background: rgba(249, 115, 22, 0.1)
+  left glow bar in orange
+
+- Stat cards on dashboard:
+  On hover: box-shadow: 0 0 30px rgba(249,115,22,0.3)
+  
+- Send button:
+  box-shadow: 0 0 15px rgba(249,115,22,0.5)
+  On hover: box-shadow: 0 0 30px rgba(249,115,22,0.8)
+
+- Confidence bar (HIGH):
+  box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e40
+  
+- Escalation card:
+  box-shadow: 0 0 25px rgba(239,68,68,0.4)
+  border: 1px solid rgba(239,68,68,0.5)
+
+- Severity badges:
+  HIGH: box-shadow: 0 0 10px rgba(239,68,68,0.6)
+  MEDIUM: box-shadow: 0 0 10px rgba(249,115,22,0.6)
+  LOW: box-shadow: 0 0 10px rgba(34,197,94,0.6)
+
+═══════════════════════════════════
+3. HOVER EFFECTS
+═══════════════════════════════════
+- All cards: 
+  transition: all 0.3s ease
+  On hover: transform: translateY(-4px)
+  On hover: box-shadow: 0 20px 40px rgba(0,0,0,0.3)
+  On hover: border-color: rgba(249,115,22,0.3)
+
+- Sidebar nav items:
+  transition: all 0.2s ease
+  On hover: background: rgba(249,115,22,0.08)
+  On hover: padding-left: 24px (slide effect)
+  On hover: color: #f97316
+
+- Customer cards:
+  On hover: border-color: rgba(249,115,22,0.4)
+  On hover: glow effect underneath
+
+- Complaint list items:
+  On hover: background: rgba(255,255,255,0.05)
+  On hover: left border 3px solid #f97316
+
+- Buttons:
+  On hover: scale(1.02)
+  On hover: brightness(1.1)
+
+═══════════════════════════════════
+4. ANIMATIONS
+═══════════════════════════════════
+- Page load: 
+  Each card fades in with staggered delay
+  (0ms, 100ms, 200ms, 300ms)
+  animation: fadeInUp 0.5s ease forwards
+
+- Chat messages:
+  New messages: slideInRight for user
+  slideInLeft for AI response
+  
+- Confidence bar:
+  Animate width from 0 to final value over 1s
+  animation: fillBar 1s ease-out
+  
+- Frustration meter:
+  Same fill animation with color transition
+  green → yellow → orange → red based on value
+
+- Dashboard numbers:
+  Count up animation from 0 to final value
+  duration: 1.5s on page load
+
+- Escalation card:
+  Pulse animation on border:
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 15px rgba(239,68,68,0.4) }
+    50% { box-shadow: 0 0 35px rgba(239,68,68,0.8) }
+  }
+  animation: pulse-red 2s infinite
+
+- AI typing indicator:
+  3 dots bouncing animation while waiting for response
+  
+- Sentiment trend chart:
+  Draw animation on load (strokeDashoffset trick)
+
+- New ticket badge on sidebar:
+  Ping animation (like a notification dot)
+
+═══════════════════════════════════
+5. MULTI-LANGUAGE SUPPORT
+═══════════════════════════════════
+Add a language selector in the top-right header:
+Supported languages:
+- English (EN) 🇬🇧
+- Hindi (HI) 🇮🇳  
+- Kannada (KN) 🇮🇳
+- Tamil (TA) 🇮🇳
+- Telugu (TE) 🇮🇳
+- Spanish (ES) 🇪🇸
+- French (FR) 🇫🇷
+
+Implementation:
+- Create /lib/i18n.ts with translation keys
+- All UI labels, buttons, headings use t('key')
+- Language preference saved to localStorage
+- Flag + language code shown in selector
+- Smooth transition when switching language
+
+Translation keys needed:
+{
+  dashboard: { title, subtitle, totalComplaints, 
+               aiResolved, escalated, avgConfidence },
+  chat: { placeholder, analyzing, sendButton, 
+          selectCustomer },
+  complaints: { title, ticketId, status, confidence },
+  customers: { title, viewProfile, openTickets, 
+               totalTickets, joined },
+  sidebar: { dashboard, chat, analyze, complaints, 
+             customers, settings },
+  badges: { high, medium, low, resolved, escalated, 
+            pending },
+  escalation: { title, assignedAgent, reasons, 
+                summary, eta }
+}
+
+═══════════════════════════════════
+6. ADDITIONAL UI IMPROVEMENTS
+═══════════════════════════════════
+
+A. HEADER BAR:
+- Add top header: 
+  Left: ResolveAI logo with glow
+  Center: Live clock showing current time
+  Right: Language selector + dark/light toggle 
+         + notification bell with badge
+         + agent avatar (John Doe)
+
+B. DASHBOARD UPGRADES:
+- Add a live "Activity Feed" on right side:
+  Shows last 5 actions in real time
+  e.g. "New complaint from Rahul Sharma - 2s ago"
+  
+- Add resolution rate donut chart
+
+- Stat cards: add small sparkline trend 
+  (mini 7-day chart inside each card)
+
+C. CHAT PAGE UPGRADES:
+- Add "Customer Quick Profile" panel on right:
+  Shows selected customer's tier, open tickets,
+  last complaint date
+  
+- Add "Copy Resolution" button on AI responses
+- Add "Escalate Manually" button below each response
+- Show typing indicator with agent avatar
+
+D. COMPLAINT PAGE UPGRADES:
+- Add filter bar: All | AI Resolved | Escalated | Pending
+- Add search bar with real-time filtering
+- Add export button (CSV)
+- Color-coded left border per severity
+
+E. CUSTOMER PAGE UPGRADES:
+- Add search/filter for customers
+- Timeline view: vertical timeline with 
+  channel icons (💬 chat, 📧 email, 📞 phone)
+- Add "Risk Score" badge per customer
+  (based on open tickets + frustration history)
+
+F. MICRO-INTERACTIONS:
+- Copy button: shows checkmark for 2s then resets
+- Send button: ripple effect on click
+- Sidebar collapse: smooth 300ms transition
+- Toast notifications: slide in from top-right
+  with auto-dismiss after 4s
+
+G. EMPTY STATES:
+- No complaints yet: illustrated empty state
+  with "Submit your first complaint" CTA
+- No customers: friendly illustration
+- API error: red banner with retry button
+
+H. COLOR THEME UPGRADE:
+Primary: #f97316 (orange - keep existing)
+Background: #0a0a1a (deep space)
+Card bg: rgba(255,255,255,0.04)
+Border: rgba(255,255,255,0.08)
+Text primary: #f1f5f9
+Text secondary: #94a3b8
+Success glow: #22c55e
+Error glow: #ef4444
+Warning glow: #f59e0b
+Accent: #6366f1 (indigo for variety)
+
+Keep all existing API connections and 
+functionality exactly as is.
+Only upgrade the visual layer.
