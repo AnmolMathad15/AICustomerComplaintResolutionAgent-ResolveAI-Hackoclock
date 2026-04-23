@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Zap, Brain, ShieldCheck, TrendingUp } from "lucide-react";
 import { useT } from "@/components/language-provider";
 import { LanguageSelector } from "@/components/language-selector";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Splash() {
   const [, navigate] = useLocation();
@@ -141,8 +142,9 @@ export default function Splash() {
         ))}
       </div>
 
-      {/* Top right language switcher */}
-      <div className="absolute top-4 right-4 z-20">
+      {/* Top right language switcher + theme toggle */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <ThemeToggle />
         <LanguageSelector />
       </div>
 
