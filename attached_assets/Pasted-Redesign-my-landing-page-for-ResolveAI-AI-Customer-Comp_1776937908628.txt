@@ -1,0 +1,137 @@
+Redesign my landing page for "ResolveAI – AI Customer Complaint Resolution Agent" into a futuristic, premium SaaS welcome screen.
+
+Tech Stack:
+- Next.js 14
+- Tailwind CSS
+- Framer Motion
+- ShadCN UI
+
+----------------------------------------
+
+🎯 GOAL:
+Create a stunning, minimal, high-end landing page similar to Stripe / Linear / Apple style.
+
+----------------------------------------
+
+🟣 HERO SECTION (MAIN FOCUS):
+
+1. LOGO DESIGN:
+- Show ONLY the main logo icon (not full rectangular logo)
+- Place logo inside a PERFECT CIRCLE container
+- Add glowing animated ring around the circle
+- Glow should be gradient:
+  - purple → blue → cyan
+- Add soft pulse animation to glow
+- Add subtle floating particles around logo
+
+2. LOGO ANIMATION:
+- Slight floating effect (up-down movement)
+- Glow pulse animation
+- Smooth fade-in on page load
+
+----------------------------------------
+
+📝 TEXT CONTENT:
+
+- Small heading:
+  "Welcome to"
+
+- Main heading:
+  "ResolveAI"
+  → Apply gradient text (purple → blue)
+
+- Tagline:
+  "Where AI Meets Real Customer Care"
+
+- Subtext:
+  "Intelligent complaint resolution that understands, analyzes, and resolves instantly."
+
+----------------------------------------
+
+🎨 BACKGROUND:
+
+- Dark futuristic gradient background:
+  navy → deep purple
+- Add:
+  - soft radial glow behind logo
+  - animated wave lines (left and right)
+  - subtle moving particles
+
+----------------------------------------
+
+🚀 CTA BUTTON:
+
+- Text: "Enter Dashboard →"
+- Large rounded button
+- Gradient background (purple → blue)
+- Glow effect on hover
+- Slight scale animation on hover
+- Center aligned
+
+----------------------------------------
+
+✨ FEATURES STRIP (OPTIONAL BUT STRONG):
+
+Below tagline, add 4 small feature icons:
+
+- ⚡ AI Powered Resolutions  
+- 🧠 Context Awareness  
+- 🛡 Policy Driven Decisions  
+- 📈 Real-time Escalation  
+
+Each:
+- Icon + label
+- Hover glow effect
+
+----------------------------------------
+
+🌍 TOP RIGHT:
+
+- Language switcher button (English / Hindi)
+- Minimal rounded design
+
+----------------------------------------
+
+🎬 ANIMATIONS (IMPORTANT):
+
+Use Framer Motion:
+
+- Page fade-in
+- Logo scale + glow animation
+- Text slide-up animation
+- Button hover animation
+- Floating background elements
+
+----------------------------------------
+
+💎 UI STYLE:
+
+- Glassmorphism cards (slight blur)
+- Soft shadows
+- Rounded-xl elements
+- Clean spacing
+- No clutter
+
+----------------------------------------
+
+📱 RESPONSIVE:
+
+- Center everything on mobile
+- Logo slightly smaller
+- Text scales properly
+- Button full-width on mobile
+
+----------------------------------------
+
+🚨 IMPORTANT RULES:
+
+- Do NOT show old rectangular logo
+- Do NOT make UI flat
+- Must feel premium, futuristic, and alive
+- Focus on glow, depth, and smooth motion
+
+----------------------------------------
+
+🎯 FINAL OUTPUT:
+
+A visually stunning landing page that looks like a real funded startup product.
