@@ -1,0 +1,154 @@
+Build a production-ready FastAPI backend for an AI Customer Complaint Resolution Agent called ResolvAI.
+
+TECH STACK:
+- Python 3.11+
+- FastAPI + Uvicorn
+- HuggingFace Transformers + PyTorch
+- scikit-learn
+- Pydantic for validation
+- CORS enabled for all origins (frontend on localhost:3000)
+
+PROJECT STRUCTURE:
+resolvai-backend/
+├── main.py
+├── models/
+│   ├── classifier.py
+│   ├── sentiment.py
+│   └── summarizer.py
+├── engine/
+│   ├── policy_engine.py
+│   ├── confidence.py
+│   └── escalation.py
+├── data/
+│   ├── customers.json
+│   └── policies.json
+└── requirements.txt
+
+AI MODELS (HuggingFace):
+1. Complaint Classifier: facebook/bart-large-mnli
+   - Zero-shot classification
+   - Labels: ["billing issue", "refund request", "technical problem", "delivery complaint", "account access", "product quality"]
+   - Returns: complaint_type, severity (HIGH/MEDIUM/LOW based on score), confidence score
+
+2. Sentiment Analyzer: cardiffnlp/twitter-roberta-base-sentiment-latest
+   - Returns: sentiment label, frustration score (0-100)
+   - Escalation trigger: negative sentiment + score > 80
+
+3. Summarizer: facebook/bart-large-cnn
+   - Summarizes customer history + current complaint
+   - Used only during escalation
+   - max_length: 100, min_length: 30
+
+POLICY ENGINE (policies.json):
+{
+  "billing": {
+    "auto_resolve_limit": 5000,
+    "resolution_template": "We have verified your billing concern. A refund of the overcharged amount will be processed within 3-5 business days to your original payment method.",
+    "escalate_conditions": ["repeated_billing_issue", "amount_exceeds_limit"],
+    "sla_hours": 24
+  },
+  "refund": {
+    "max_processing_days": 7,
+    "resolution_template": "Your refund request has been accepted and will be credited within 5-7 business days. You will receive a confirmation email shortly.",
+    "escalate_conditions": ["pending_beyond_7_days", "high_value_refund"],
+    "sla_hours": 48
+  },
+  "technical": {
+    "resolution_template": "We have logged a high-priority technical ticket for your issue. Our engineering team will resolve this within 24 hours and notify you via email.",
+    "escalate_conditions": ["repeated_technical_issue", "data_loss_reported"],
+    "sla_hours": 12
+  },
+  "delivery": {
+    "resolution_template": "We have flagged your delivery concern with our logistics partner. You will receive an update within 24 hours with the revised delivery timeline.",
+    "escalate_conditions": ["delay_beyond_7_days", "item_lost"],
+    "sla_hours": 24
+  },
+  "account": {
+    "resolution_template": "We have initiated a secure account recovery process. A verification link has been sent to your registered email. Please check your inbox.",
+    "escalate_conditions": ["security_breach_suspected", "unauthorized_access"],
+    "sla_hours": 6
+  }
+}
+
+CUSTOMER DATABASE (customers.json):
+Create 6 detailed customer profiles with:
+- customer_id, name, email, phone, tier (Premium/Standard/Basic), join_date
+- history array with 3-5 past interactions each containing:
+  ticket_id, channel (chat/email/phone), date, issue, complaint_type, status (resolved/pending/escalated), resolution, agent_name
+
+CONFIDENCE SCORING LOGIC:
+confidence_score = (classification_score * 0.5) + (policy_match_score * 0.3) + (history_factor * 0.2)
+- policy_match_score: 1.0 if policy exists, 0.5 if partial match, 0.0 if no policy
+- history_factor: 0.8 if customer has similar resolved issue, 1.0 if first time, 0.3 if repeated unresolved
+- If final confidence < 0.60: flag for escalation
+
+ESCALATION LOGIC:
+Escalate if ANY of these conditions are true:
+1. Sentiment frustration score > 80
+2. Confidence score < 0.60
+3. Complaint type matches escalate_conditions in policy
+4. Customer has 2+ unresolved tickets of same type
+Escalation response includes: summary (from summarizer model), assigned_agent, ticket_id, estimated_response_time
+
+API ENDPOINTS:
+
+POST /analyze
+Request: { "complaint": "string", "customer_id": "string" }
+Response: {
+  "complaint_type": "string",
+  "severity": "HIGH|MEDIUM|LOW",
+  "confidence_score": float,
+  "sentiment": "positive|neutral|negative",
+  "frustration_score": float,
+  "resolution": "string",
+  "policy_reference": "string",
+  "should_escalate": boolean,
+  "escalation_summary": "string|null",
+  "assigned_agent": "string|null",
+  "ticket_id": "string",
+  "sla_hours": int
+}
+
+GET /customer/{customer_id}
+Response: full customer profile with history
+
+GET /complaints
+Response: list of all complaints processed in current session
+
+POST /escalate
+Request: { "ticket_id": "string", "customer_id": "string", "reason": "string" }
+Response: { "escalated": true, "assigned_agent": "string", "summary": "string", "eta": "string" }
+
+GET /dashboard/stats
+Response: {
+  "total_today": int,
+  "resolved_by_ai": int,
+  "escalated": int,
+  "avg_confidence": float,
+  "complaints_by_type": object,
+  "sentiment_trend": array
+}
+
+STARTUP BEHAVIOR:
+- On server start: pre-load ALL 3 HuggingFace models into memory
+- Print "ResolvAI Backend Ready" when all models loaded
+- Store all analyzed complaints in memory (list) for dashboard stats
+- Generate unique ticket IDs: TKT-{timestamp}-{random4digits}
+
+ERROR HANDLING:
+- If model inference fails: return mock response with confidence 0.5
+- If customer_id not found: return generic customer template
+- All endpoints return proper HTTP status codes
+- Global exception handler returns { "error": "message", "status": "failed" }
+
+REQUIREMENTS.TXT:
+fastapi
+uvicorn
+transformers
+torch
+scikit-learn
+pydantic
+python-multipart
+httpx
+
+Make this backend robust, well-commented, and production-ready. Every function must have docstrings. Use proper async where possible.

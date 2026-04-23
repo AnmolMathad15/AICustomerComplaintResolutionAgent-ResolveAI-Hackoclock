@@ -1,0 +1,484 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: ResolveAI - AI Customer Complaint Resolution Agent API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: complaints
+    description: Complaint analysis and management
+  - name: customers
+    description: Customer profile operations
+  - name: escalation
+    description: Complaint escalation
+  - name: dashboard
+    description: Dashboard statistics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /analyze:
+    post:
+      operationId: analyzeComplaint
+      tags: [complaints]
+      summary: Analyze a customer complaint
+      description: Uses AI models to classify, assess sentiment, and generate resolution for a complaint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeComplaintBody"
+      responses:
+        "200":
+          description: Complaint analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzeComplaintResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /complaints:
+    get:
+      operationId: listComplaints
+      tags: [complaints]
+      summary: List all complaints
+      description: Returns all complaints processed in the current session
+      responses:
+        "200":
+          description: List of complaints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AnalyzeComplaintResponse"
+
+  /customer/{customerId}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get customer profile
+      description: Returns full customer profile with interaction history
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Customer profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers
+      description: Returns all customer profiles
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerSummary"
+
+  /escalate:
+    post:
+      operationId: escalateComplaint
+      tags: [escalation]
+      summary: Escalate a complaint
+      description: Manually escalate a complaint to a human agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EscalateBody"
+      responses:
+        "200":
+          description: Escalation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EscalateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      description: Returns aggregated statistics for the dashboard
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        status:
+          type: string
+      required:
+        - error
+
+    AnalyzeComplaintBody:
+      type: object
+      properties:
+        complaint:
+          type: string
+          description: The complaint text from the customer
+        customerId:
+          type: string
+          description: The customer ID
+      required:
+        - complaint
+        - customerId
+
+    ConfidenceBreakdown:
+      type: object
+      properties:
+        classificationScore:
+          type: number
+        policyMatchScore:
+          type: number
+        historyFactor:
+          type: number
+        classificationWeight:
+          type: number
+        policyMatchWeight:
+          type: number
+        historyWeight:
+          type: number
+      required:
+        - classificationScore
+        - policyMatchScore
+        - historyFactor
+        - classificationWeight
+        - policyMatchWeight
+        - historyWeight
+
+    EscalationDetail:
+      type: object
+      properties:
+        assignedAgent:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+      required:
+        - assignedAgent
+        - reasons
+        - summary
+
+    AnalyzeComplaintResponse:
+      type: object
+      properties:
+        ticketId:
+          type: string
+        customerId:
+          type: string
+        customerName:
+          type: string
+        customerTier:
+          type: string
+        complaint:
+          type: string
+        complaintType:
+          type: string
+          enum: [billing, refund, technical, delivery, account, product_quality, unknown]
+        severity:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        confidenceScore:
+          type: number
+        confidencePercentage:
+          type: number
+        confidenceLevel:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        confidenceBreakdown:
+          $ref: "#/components/schemas/ConfidenceBreakdown"
+        sentiment:
+          type: string
+          enum: [positive, neutral, negative]
+        frustrationScore:
+          type: number
+        resolution:
+          type: string
+        policyReference:
+          type: string
+        policyCode:
+          type: string
+        shouldEscalate:
+          type: boolean
+        escalation:
+          oneOf:
+            - $ref: "#/components/schemas/EscalationDetail"
+            - type: "null"
+        escalationSummary:
+          type: ["string", "null"]
+        assignedAgent:
+          type: ["string", "null"]
+        slaHours:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - ticketId
+        - customerId
+        - customerName
+        - customerTier
+        - complaint
+        - complaintType
+        - severity
+        - confidenceScore
+        - confidencePercentage
+        - confidenceLevel
+        - confidenceBreakdown
+        - sentiment
+        - frustrationScore
+        - resolution
+        - policyReference
+        - policyCode
+        - shouldEscalate
+        - escalation
+        - escalationSummary
+        - assignedAgent
+        - slaHours
+        - createdAt
+
+    HistoryItem:
+      type: object
+      properties:
+        ticketId:
+          type: string
+        channel:
+          type: string
+          enum: [chat, email, phone]
+        date:
+          type: string
+        issue:
+          type: string
+        complaintType:
+          type: string
+        status:
+          type: string
+          enum: [resolved, pending, escalated]
+        resolution:
+          type: string
+        agentName:
+          type: string
+      required:
+        - ticketId
+        - channel
+        - date
+        - issue
+        - complaintType
+        - status
+        - resolution
+        - agentName
+
+    Customer:
+      type: object
+      properties:
+        customerId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        tier:
+          type: string
+          enum: [Premium, Standard, Basic]
+        joinDate:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryItem"
+      required:
+        - customerId
+        - name
+        - email
+        - phone
+        - tier
+        - joinDate
+        - history
+
+    CustomerSummary:
+      type: object
+      properties:
+        customerId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        tier:
+          type: string
+          enum: [Premium, Standard, Basic]
+        joinDate:
+          type: string
+        totalTickets:
+          type: integer
+        openTickets:
+          type: integer
+      required:
+        - customerId
+        - name
+        - email
+        - tier
+        - joinDate
+        - totalTickets
+        - openTickets
+
+    EscalateBody:
+      type: object
+      properties:
+        ticketId:
+          type: string
+        customerId:
+          type: string
+        reason:
+          type: string
+      required:
+        - ticketId
+        - customerId
+        - reason
+
+    EscalateResponse:
+      type: object
+      properties:
+        escalated:
+          type: boolean
+        assignedAgent:
+          type: string
+        summary:
+          type: string
+        eta:
+          type: string
+        ticketId:
+          type: string
+      required:
+        - escalated
+        - assignedAgent
+        - summary
+        - eta
+        - ticketId
+
+    SentimentTrendItem:
+      type: object
+      properties:
+        hour:
+          type: string
+        positive:
+          type: integer
+        neutral:
+          type: integer
+        negative:
+          type: integer
+      required:
+        - hour
+        - positive
+        - neutral
+        - negative
+
+    DashboardStats:
+      type: object
+      properties:
+        totalToday:
+          type: integer
+        resolvedByAi:
+          type: integer
+        escalated:
+          type: integer
+        avgConfidence:
+          type: number
+        complaintsByType:
+          type: object
+          additionalProperties:
+            type: integer
+        sentimentTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/SentimentTrendItem"
+        resolvedRate:
+          type: number
+        avgFrustrationScore:
+          type: number
+      required:
+        - totalToday
+        - resolvedByAi
+        - escalated
+        - avgConfidence
+        - complaintsByType
+        - sentimentTrend
+        - resolvedRate
+        - avgFrustrationScore

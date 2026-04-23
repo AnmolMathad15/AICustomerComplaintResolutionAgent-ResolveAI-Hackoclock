@@ -1,0 +1,292 @@
+[
+  {
+    "customer_id": "CUST-001",
+    "name": "Sarah Mitchell",
+    "email": "sarah.mitchell@email.com",
+    "phone": "+1-555-234-5678",
+    "tier": "Premium",
+    "join_date": "2020-03-15",
+    "history": [
+      {
+        "ticket_id": "TKT-20231201-4521",
+        "channel": "chat",
+        "date": "2023-12-01",
+        "issue": "Double charged for subscription renewal",
+        "complaint_type": "billing",
+        "status": "resolved",
+        "resolution": "Refund of $49.99 processed within 3 business days",
+        "agent_name": "Alex Chen"
+      },
+      {
+        "ticket_id": "TKT-20231115-3302",
+        "channel": "email",
+        "date": "2023-11-15",
+        "issue": "Order never arrived after 14 days",
+        "complaint_type": "delivery",
+        "status": "resolved",
+        "resolution": "Replacement shipped with expedited delivery and $20 store credit",
+        "agent_name": "Maria Santos"
+      },
+      {
+        "ticket_id": "TKT-20240102-1198",
+        "channel": "phone",
+        "date": "2024-01-02",
+        "issue": "Cannot access premium features after payment",
+        "complaint_type": "account",
+        "status": "resolved",
+        "resolution": "Account access restored and premium features re-enabled",
+        "agent_name": "James Park"
+      },
+      {
+        "ticket_id": "TKT-20240301-7754",
+        "channel": "chat",
+        "date": "2024-03-01",
+        "issue": "Product quality was poor, defective item received",
+        "complaint_type": "product_quality",
+        "status": "escalated",
+        "resolution": "Escalated to quality team; full replacement dispatched",
+        "agent_name": "Linda Torres"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUST-002",
+    "name": "Robert Kim",
+    "email": "robert.kim@techcorp.com",
+    "phone": "+1-555-987-6543",
+    "tier": "Standard",
+    "join_date": "2021-07-22",
+    "history": [
+      {
+        "ticket_id": "TKT-20231005-8821",
+        "channel": "email",
+        "date": "2023-10-05",
+        "issue": "App crashes when uploading files larger than 10MB",
+        "complaint_type": "technical",
+        "status": "resolved",
+        "resolution": "Bug fixed in v2.3.1 released on 2023-10-08",
+        "agent_name": "Dev Team / Priya Nair"
+      },
+      {
+        "ticket_id": "TKT-20231220-5567",
+        "channel": "chat",
+        "date": "2023-12-20",
+        "issue": "Charged for cancelled subscription",
+        "complaint_type": "billing",
+        "status": "resolved",
+        "resolution": "Full refund of $29.99 processed",
+        "agent_name": "Alex Chen"
+      },
+      {
+        "ticket_id": "TKT-20240115-2234",
+        "channel": "phone",
+        "date": "2024-01-15",
+        "issue": "App still crashing on iOS 17 after update",
+        "complaint_type": "technical",
+        "status": "pending",
+        "resolution": "Investigation ongoing, ETA 48 hours",
+        "agent_name": "Priya Nair"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUST-003",
+    "name": "Elena Rodriguez",
+    "email": "elena.r@homedesign.net",
+    "phone": "+1-555-456-7890",
+    "tier": "Premium",
+    "join_date": "2019-11-08",
+    "history": [
+      {
+        "ticket_id": "TKT-20230815-3341",
+        "channel": "email",
+        "date": "2023-08-15",
+        "issue": "Refund for returned item not received after 30 days",
+        "complaint_type": "refund",
+        "status": "escalated",
+        "resolution": "Escalated; refund of $189.00 force-processed by finance team",
+        "agent_name": "Finance Team / Carlos Ruiz"
+      },
+      {
+        "ticket_id": "TKT-20231103-9981",
+        "channel": "chat",
+        "date": "2023-11-03",
+        "issue": "Unable to login after password reset",
+        "complaint_type": "account",
+        "status": "resolved",
+        "resolution": "Account unlocked and new credentials issued",
+        "agent_name": "James Park"
+      },
+      {
+        "ticket_id": "TKT-20240201-4412",
+        "channel": "phone",
+        "date": "2024-02-01",
+        "issue": "Billing statement shows incorrect charges for past 3 months",
+        "complaint_type": "billing",
+        "status": "pending",
+        "resolution": "Under review by billing department",
+        "agent_name": "Alex Chen"
+      },
+      {
+        "ticket_id": "TKT-20240310-6671",
+        "channel": "email",
+        "date": "2024-03-10",
+        "issue": "Premium membership benefits not applying to orders",
+        "complaint_type": "account",
+        "status": "resolved",
+        "resolution": "Membership tier corrected and retroactive benefits applied",
+        "agent_name": "Maria Santos"
+      },
+      {
+        "ticket_id": "TKT-20240405-1123",
+        "channel": "chat",
+        "date": "2024-04-05",
+        "issue": "Fragile item arrived broken despite insurance",
+        "complaint_type": "product_quality",
+        "status": "resolved",
+        "resolution": "Full replacement shipped plus shipping refund",
+        "agent_name": "Linda Torres"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUST-004",
+    "name": "Marcus Johnson",
+    "email": "marcus.j@enterprise.io",
+    "phone": "+1-555-321-9876",
+    "tier": "Basic",
+    "join_date": "2022-05-14",
+    "history": [
+      {
+        "ticket_id": "TKT-20231201-7743",
+        "channel": "chat",
+        "date": "2023-12-01",
+        "issue": "Package shows delivered but not received",
+        "complaint_type": "delivery",
+        "status": "resolved",
+        "resolution": "Investigation with carrier completed; replacement sent",
+        "agent_name": "Maria Santos"
+      },
+      {
+        "ticket_id": "TKT-20240105-3388",
+        "channel": "email",
+        "date": "2024-01-05",
+        "issue": "Wrong item delivered in order",
+        "complaint_type": "delivery",
+        "status": "resolved",
+        "resolution": "Correct item expedited, return label provided",
+        "agent_name": "Linda Torres"
+      },
+      {
+        "ticket_id": "TKT-20240220-8874",
+        "channel": "phone",
+        "date": "2024-02-20",
+        "issue": "Refund request for defective product after 15 days",
+        "complaint_type": "refund",
+        "status": "pending",
+        "resolution": "Pending policy review for late refund request",
+        "agent_name": "Carlos Ruiz"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUST-005",
+    "name": "Jennifer Walsh",
+    "email": "j.walsh@creativeagency.com",
+    "phone": "+1-555-678-2345",
+    "tier": "Premium",
+    "join_date": "2018-09-30",
+    "history": [
+      {
+        "ticket_id": "TKT-20230601-5542",
+        "channel": "phone",
+        "date": "2023-06-01",
+        "issue": "Suspicious charges detected on account",
+        "complaint_type": "account",
+        "status": "escalated",
+        "resolution": "Security team investigated; fraudulent charges reversed, account secured",
+        "agent_name": "Security Team / James Park"
+      },
+      {
+        "ticket_id": "TKT-20230901-2211",
+        "channel": "email",
+        "date": "2023-09-01",
+        "issue": "API integration not working after plan upgrade",
+        "complaint_type": "technical",
+        "status": "resolved",
+        "resolution": "API keys regenerated and integration documentation sent",
+        "agent_name": "Priya Nair"
+      },
+      {
+        "ticket_id": "TKT-20231115-8832",
+        "channel": "chat",
+        "date": "2023-11-15",
+        "issue": "Overcharged by $250 on enterprise invoice",
+        "complaint_type": "billing",
+        "status": "resolved",
+        "resolution": "Credit of $250 applied to next billing cycle",
+        "agent_name": "Alex Chen"
+      },
+      {
+        "ticket_id": "TKT-20240115-4471",
+        "channel": "phone",
+        "date": "2024-01-15",
+        "issue": "Data export feature completely broken",
+        "complaint_type": "technical",
+        "status": "resolved",
+        "resolution": "Critical bug patched in v3.1.2; export functionality restored",
+        "agent_name": "Dev Team / Priya Nair"
+      }
+    ]
+  },
+  {
+    "customer_id": "CUST-006",
+    "name": "David Chen",
+    "email": "d.chen@logistics.co",
+    "phone": "+1-555-876-5432",
+    "tier": "Standard",
+    "join_date": "2021-02-18",
+    "history": [
+      {
+        "ticket_id": "TKT-20231010-6654",
+        "channel": "email",
+        "date": "2023-10-10",
+        "issue": "Delivery delayed by 10 days without notification",
+        "complaint_type": "delivery",
+        "status": "resolved",
+        "resolution": "Escalated to logistics partner; priority delivery completed, $15 credit issued",
+        "agent_name": "Maria Santos"
+      },
+      {
+        "ticket_id": "TKT-20231201-1122",
+        "channel": "chat",
+        "date": "2023-12-01",
+        "issue": "Password reset email not being received",
+        "complaint_type": "account",
+        "status": "resolved",
+        "resolution": "Email domain whitelist issue fixed; account access restored",
+        "agent_name": "James Park"
+      },
+      {
+        "ticket_id": "TKT-20240105-9943",
+        "channel": "phone",
+        "date": "2024-01-05",
+        "issue": "Multiple refund requests pending for over 14 days",
+        "complaint_type": "refund",
+        "status": "escalated",
+        "resolution": "Escalated; all pending refunds totaling $340 processed within 24h",
+        "agent_name": "Finance Team / Carlos Ruiz"
+      },
+      {
+        "ticket_id": "TKT-20240301-5521",
+        "channel": "email",
+        "date": "2024-03-01",
+        "issue": "Bulk order tracking not updating for 7 days",
+        "complaint_type": "delivery",
+        "status": "pending",
+        "resolution": "Investigating with carrier tracking system",
+        "agent_name": "Maria Santos"
+      }
+    ]
+  }
+]

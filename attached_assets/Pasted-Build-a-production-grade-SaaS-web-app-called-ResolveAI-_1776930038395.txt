@@ -1,0 +1,149 @@
+Build a production-grade SaaS web app called "ResolveAI – AI Customer Complaint Resolution Agent".
+
+Tech Stack:
+- Next.js 14 (App Router)
+- Tailwind CSS
+- ShadCN UI
+- Axios for API
+- Recharts for analytics
+
+Backend:
+- FastAPI running at http://localhost:8000
+
+----------------------------------------
+
+API CONTRACT (STRICTLY FOLLOW):
+
+POST /analyze
+Request:
+{
+  "complaint": "string",
+  "customer_id": "CUST001"
+}
+
+Response:
+{
+  "ticket_id": "string",
+  "customer_name": "string",
+  "customer_tier": "string",
+  "complaint_type": "string",
+  "severity": "HIGH | MEDIUM | LOW",
+  "confidence_percentage": number,
+  "confidence_level": "HIGH | MEDIUM | LOW",
+  "confidence_breakdown": object,
+  "sentiment": "positive | neutral | negative",
+  "frustration_score": number,
+  "resolution": "string",
+  "policy_code": "string",
+  "sla_hours": number,
+  "should_escalate": boolean,
+  "escalation": object | null,
+  "escalation_summary": string | null
+}
+
+GET /dashboard/stats
+GET /customer/{id}
+
+----------------------------------------
+
+APP STRUCTURE:
+
+/app
+  /chat
+  /dashboard
+  /customer/[id]
+
+/components
+  ChatPanel.tsx
+  MessageBubble.tsx
+  EscalationCard.tsx
+  ConfidenceBar.tsx
+  DashboardCharts.tsx
+  CustomerTimeline.tsx
+
+/lib
+  api.ts
+
+----------------------------------------
+
+FEATURES:
+
+1. CHAT INTERFACE:
+- ChatGPT-style UI
+- User message (right)
+- AI response (left)
+- Show:
+  - Complaint type badge
+  - Severity badge (color-coded)
+  - Resolution text
+  - Confidence %
+  - Sentiment indicator
+- Show loading animation: "Analyzing complaint..."
+
+2. ESCALATION CARD:
+- Only if should_escalate = true
+- Show:
+  - Ticket ID
+  - Assigned agent
+  - Reasons (list)
+  - Summary
+- Highlight in red border
+
+3. DASHBOARD:
+- Cards:
+  - Total complaints
+  - AI resolved %
+  - Escalation rate
+  - Avg confidence
+- Charts:
+  - Complaint types (bar)
+  - Sentiment trend (line)
+
+4. CUSTOMER PROFILE:
+- Customer info card
+- Timeline:
+  - Issue
+  - Date
+  - Status
+  - Resolution
+
+----------------------------------------
+
+UX REQUIREMENTS:
+
+- Modern SaaS design (Stripe/Linear inspired)
+- Smooth animations (fade/slide)
+- Skeleton loaders
+- Error handling (API failure UI)
+- Empty states (no data)
+- Dark mode toggle
+- Responsive mobile + desktop
+
+----------------------------------------
+
+ADVANCED FEATURES (IMPORTANT):
+
+- Show "Why AI made this decision":
+  - Confidence breakdown
+- Show "Policy Code Used"
+- Highlight SLA hours
+
+- Add “Frustration Meter” (progress bar)
+
+----------------------------------------
+
+STATE MANAGEMENT:
+
+- Use React hooks (useState/useEffect)
+- Maintain chat history
+- Persist messages in session (optional)
+
+----------------------------------------
+
+GOAL:
+
+The app should look and behave like a real startup SaaS product.
+Clean UI, smooth UX, zero broken states.
+
+DO NOT generate placeholder UI.
+Everything must be functional and connected to backend.

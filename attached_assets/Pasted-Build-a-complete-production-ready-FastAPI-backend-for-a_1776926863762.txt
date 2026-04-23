@@ -1,0 +1,299 @@
+Build a complete production-ready FastAPI backend for an AI Customer Complaint Resolution Agent called ResolvAI. This is for a hackathon so everything must work perfectly out of the box.
+
+COMPLETE PROJECT STRUCTURE:
+resolvai-backend/
+├── main.py
+├── models/
+│   ├── __init__.py
+│   ├── classifier.py
+│   ├── sentiment.py
+│   └── summarizer.py
+├── engine/
+│   ├── __init__.py
+│   ├── policy_engine.py
+│   ├── confidence.py
+│   └── escalation.py
+├── data/
+│   ├── customers.json
+│   └── policies.json
+├── requirements.txt
+└── README.md
+
+REQUIREMENTS.TXT (create this exactly):
+fastapi
+uvicorn[standard]
+transformers
+torch
+scikit-learn
+pydantic
+python-multipart
+httpx
+sentencepiece
+accelerate
+
+STEP 1 - CREATE customers.json WITH THIS EXACT DATA:
+{
+  "CUST001": {
+    "customer_id": "CUST001",
+    "name": "Rahul Sharma",
+    "email": "rahul.sharma@email.com",
+    "phone": "+91-9876543210",
+    "tier": "Premium",
+    "join_date": "2023-05-12",
+    "total_complaints": 3,
+    "history": [
+      {
+        "ticket_id": "TKT-2341",
+        "channel": "email",
+        "date": "2026-02-10",
+        "issue": "Double charged for March subscription",
+        "complaint_type": "billing",
+        "severity": "HIGH",
+        "status": "resolved",
+        "resolution": "Refund of Rs.499 processed successfully",
+        "agent_name": "Sneha Patil"
+      },
+      {
+        "ticket_id": "TKT-2891",
+        "channel": "chat",
+        "date": "2026-03-22",
+        "issue": "App crashing on login screen after update",
+        "complaint_type": "technical",
+        "severity": "MEDIUM",
+        "status": "resolved",
+        "resolution": "Bug fix deployed in v2.3.1",
+        "agent_name": "AI Agent"
+      },
+      {
+        "ticket_id": "TKT-3102",
+        "channel": "phone",
+        "date": "2026-04-01",
+        "issue": "Refund not received after 15 days",
+        "complaint_type": "refund",
+        "severity": "HIGH",
+        "status": "pending",
+        "resolution": null,
+        "agent_name": null
+      }
+    ]
+  },
+  "CUST002": {
+    "customer_id": "CUST002",
+    "name": "Priya Nair",
+    "email": "priya.nair@email.com",
+    "phone": "+91-9845123456",
+    "tier": "Standard",
+    "join_date": "2024-01-08",
+    "total_complaints": 2,
+    "history": [
+      {
+        "ticket_id": "TKT-1892",
+        "channel": "chat",
+        "date": "2026-01-15",
+        "issue": "Unable to download invoice",
+        "complaint_type": "technical",
+        "severity": "LOW",
+        "status": "resolved",
+        "resolution": "Invoice regenerated and sent to email",
+        "agent_name": "AI Agent"
+      },
+      {
+        "ticket_id": "TKT-2203",
+        "channel": "email",
+        "date": "2026-03-05",
+        "issue": "Wrong amount billed for premium plan",
+        "complaint_type": "billing",
+        "severity": "MEDIUM",
+        "status": "resolved",
+        "resolution": "Billing corrected, difference credited",
+        "agent_name": "Ravi Kumar"
+      }
+    ]
+  },
+  "CUST003": {
+    "customer_id": "CUST003",
+    "name": "Karan Mehta",
+    "email": "karan.mehta@email.com",
+    "phone": "+91-9731234567",
+    "tier": "Premium",
+    "join_date": "2022-11-20",
+    "total_complaints": 4,
+    "history": [
+      {
+        "ticket_id": "TKT-1123",
+        "channel": "phone",
+        "date": "2025-10-12",
+        "issue": "Account locked after failed login attempts",
+        "complaint_type": "account",
+        "severity": "HIGH",
+        "status": "resolved",
+        "resolution": "Account unlocked, security review done",
+        "agent_name": "Meera Singh"
+      },
+      {
+        "ticket_id": "TKT-1456",
+        "channel": "email",
+        "date": "2025-12-01",
+        "issue": "Delivery delayed by 10 days",
+        "complaint_type": "delivery",
+        "severity": "HIGH",
+        "status": "escalated",
+        "resolution": "Escalated to logistics team",
+        "agent_name": "Rahul Verma"
+      },
+      {
+        "ticket_id": "TKT-2567",
+        "channel": "chat",
+        "date": "2026-02-18",
+        "issue": "Product quality not as described",
+        "complaint_type": "product quality",
+        "severity": "MEDIUM",
+        "status": "resolved",
+        "resolution": "Replacement product shipped",
+        "agent_name": "AI Agent"
+      },
+      {
+        "ticket_id": "TKT-3089",
+        "channel": "chat",
+        "date": "2026-04-10",
+        "issue": "Still facing login issues after reset",
+        "complaint_type": "technical",
+        "severity": "HIGH",
+        "status": "pending",
+        "resolution": null,
+        "agent_name": null
+      }
+    ]
+  },
+  "CUST004": {
+    "customer_id": "CUST004",
+    "name": "Ananya Reddy",
+    "email": "ananya.reddy@email.com",
+    "phone": "+91-9654321098",
+    "tier": "Basic",
+    "join_date": "2024-06-15",
+    "total_complaints": 1,
+    "history": [
+      {
+        "ticket_id": "TKT-2789",
+        "channel": "email",
+        "date": "2026-03-28",
+        "issue": "Refund request for cancelled order",
+        "complaint_type": "refund",
+        "severity": "MEDIUM",
+        "status": "pending",
+        "resolution": null,
+        "agent_name": null
+      }
+    ]
+  },
+  "CUST005": {
+    "customer_id": "CUST005",
+    "name": "Vikram Joshi",
+    "email": "vikram.joshi@email.com",
+    "phone": "+91-9512345678",
+    "tier": "Premium",
+    "join_date": "2021-08-30",
+    "total_complaints": 5,
+    "history": [
+      {
+        "ticket_id": "TKT-0891",
+        "channel": "phone",
+        "date": "2025-08-14",
+        "issue": "Unauthorized transaction on account",
+        "complaint_type": "account",
+        "severity": "HIGH",
+        "status": "resolved",
+        "resolution": "Transaction reversed, security enhanced",
+        "agent_name": "Security Team"
+      },
+      {
+        "ticket_id": "TKT-1234",
+        "channel": "chat",
+        "date": "2025-11-22",
+        "issue": "Subscription not activated after payment",
+        "complaint_type": "billing",
+        "severity": "HIGH",
+        "status": "resolved",
+        "resolution": "Subscription manually activated, compensation credited",
+        "agent_name": "Priya Sharma"
+      },
+      {
+        "ticket_id": "TKT-3201",
+        "channel": "email",
+        "date": "2026-04-15",
+        "issue": "I am extremely frustrated, this is the third time my refund has not been processed. This is completely unacceptable.",
+        "complaint_type": "refund",
+        "severity": "HIGH",
+        "status": "pending",
+        "resolution": null,
+        "agent_name": null
+      }
+    ]
+  }
+}
+
+STEP 2 - CREATE policies.json WITH THIS EXACT DATA:
+{
+  "billing": {
+    "auto_resolve_limit": 5000,
+    "resolution_template": "We have verified your billing concern. The overcharged amount will be refunded within 3-5 business days to your original payment method. You will receive a confirmation email with the transaction details.",
+    "escalate_conditions": ["repeated_billing_issue", "amount_exceeds_limit"],
+    "sla_hours": 24,
+    "policy_code": "POL-BILL-001"
+  },
+  "refund": {
+    "max_processing_days": 7,
+    "resolution_template": "Your refund request has been accepted and initiated. The amount will be credited to your account within 5-7 business days. A confirmation email has been sent to your registered email address.",
+    "escalate_conditions": ["pending_beyond_7_days", "high_value_refund", "repeated_refund_issue"],
+    "sla_hours": 48,
+    "policy_code": "POL-REF-002"
+  },
+  "technical": {
+    "resolution_template": "We have logged a high-priority technical ticket for your issue. Our engineering team will investigate and resolve this within 24 hours. You will receive email updates on the progress.",
+    "escalate_conditions": ["repeated_technical_issue", "data_loss_reported", "security_related"],
+    "sla_hours": 12,
+    "policy_code": "POL-TECH-003"
+  },
+  "delivery": {
+    "resolution_template": "We have flagged your delivery concern with our logistics partner and assigned it priority status. You will receive an update within 24 hours with the revised delivery timeline and compensation if applicable.",
+    "escalate_conditions": ["delay_beyond_7_days", "item_lost", "wrong_item_delivered"],
+    "sla_hours": 24,
+    "policy_code": "POL-DEL-004"
+  },
+  "account": {
+    "resolution_template": "We have initiated a secure account recovery process. A verification link has been sent to your registered email. For security purposes, please complete verification within 30 minutes.",
+    "escalate_conditions": ["security_breach_suspected", "unauthorized_access", "multiple_failed_attempts"],
+    "sla_hours": 6,
+    "policy_code": "POL-ACC-005"
+  },
+  "product quality": {
+    "resolution_template": "We sincerely apologize for the product quality issue. We are initiating a replacement or full refund as per your preference. Our quality team has been notified to prevent recurrence.",
+    "escalate_conditions": ["safety_hazard", "multiple_complaints_same_product"],
+    "sla_hours": 24,
+    "policy_code": "POL-QUAL-006"
+  }
+}
+
+STEP 3 - CREATE models/classifier.py:
+from transformers import pipeline
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ComplaintClassifier:
+    def __init__(self):
+        logger.info("Loading complaint classifier model...")
+        self.classifier = pipeline(
+            "zero-shot-classification",
+            model="facebook/bart-large-mnli",
+            device=-1
+        )
+        self.labels = [
+            "billing issue",
+            "refund request", 
+            "technical problem",
+            "delivery complaint",
+            "account access issue",
+            "product quality complaint"
+        ]
