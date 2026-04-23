@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/resolveai-logo.png" alt="ResolveAI Logo" width="180"/>
+<img src="public/<img width="600" height="480" alt="resolveai-logo" src="https://github.com/user-attachments/assets/c137bab2-8a4c-4a4f-87fa-e924334ea07a" />" alt="ResolveAI Logo" width="180"/>
 
 # ResolveAI — AI Customer Complaint Resolution Agent
 
