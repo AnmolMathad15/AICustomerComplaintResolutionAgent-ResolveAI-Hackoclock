@@ -26,6 +26,7 @@ import { useT } from "@/components/language-provider";
 import { useCompany } from "@/lib/company-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { SlaCountdown } from "@/components/sla-countdown";
 
 type FilterKey = "all" | "resolved" | "escalated" | "pending" | "in_progress";
 type SortKey = "recent" | "priority";
@@ -180,6 +181,13 @@ function ComplaintRow({
               {complaint.customerName}
             </Link>
             <p className="text-xs text-muted-foreground mt-0.5">{formatDate(complaint.createdAt)}</p>
+            <div className="mt-2">
+              <SlaCountdown
+                createdAt={complaint.createdAt}
+                slaHours={complaint.slaHours ?? 24}
+                resolved={status === "resolved"}
+              />
+            </div>
             {complaint.companyName && (
               <p className="text-[10px] text-cyan-300/80 mt-1.5 inline-flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
