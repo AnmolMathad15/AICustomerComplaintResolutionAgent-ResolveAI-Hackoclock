@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- HERO BANNER -->
-<img src="assets/hero-banner.png" width="100%" />
+<img src="hero-banner.png" width="100%" />
 
 <br><br>
 
