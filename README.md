@@ -3,31 +3,35 @@
 <!-- HERO BANNER -->
 <img src="assets/hero-banner.png" width="100%" />
 
+<br><br>
+
+<!-- BADGES -->
+<p>
+  <img src="https://img.shields.io/badge/HACK%C2%B0CLOCK-2026-purple" />
+  <img src="https://img.shields.io/badge/TRACK-AI%2FML-blue" />
+  <img src="https://img.shields.io/badge/LICENSE-MIT-green" />
+  <img src="https://img.shields.io/badge/PYTHON-3.11-blue" />
+  <img src="https://img.shields.io/badge/NEXT.JS-14-black" />
+</p>
+
+<h1>🧠 ResolveAI</h1>
+
+<p><b>AI-Powered Customer Complaint Resolution Agent</b></p>
+
+<p><i>"Turning customer frustration into intelligent, real-time resolution."</i></p>
+
+<br>
+
+<p>
+  <a href="https://ai-customer-complaint-resolution-agent-resolve--koalabunny1515.replit.app/"><b>🌐 Live Demo</b></a> |
+  <a href="https://github.com/AnmolMathad15/AICustomerComplaintResolutionAgent-ResolveAI-Hackoclock"><b>📄 API Docs</b></a> |
+  <a href="https://youtube.com/your-video"><b>🎥 Demo Video</b></a> |
+  <a href="https://drive.google.com/file/d/1bzi15pteUK7xydzjyw4J4q_wkKq-b8HR/view?usp=sharing"><b>📊 Report / PPT</b></a>
+</p>
+
 </div>
-<br/>
 
-<img src="https://img.shields.io/badge/⚡_Hack0'Clock-2026-blueviolet?style=for-the-badge&labelColor=0d0d0d" />
-<img src="https://img.shields.io/badge/Track-AI%2FML-00e5ff?style=for-the-badge&labelColor=0d0d0d" />
-<img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge&labelColor=0d0d0d" />
-<img src="https://img.shields.io/badge/Python-3.11+-3b82f6?style=for-the-badge&logo=python&logoColor=white&labelColor=0d0d0d" />
-<img src="https://img.shields.io/badge/Next.js-14-white?style=for-the-badge&logo=next.js&logoColor=black&labelColor=0d0d0d" />
-
-<br/><br/>
-
-<h1>
-  <img src="https://img.shields.io/badge/Resolve-AI-gradient?style=flat-square&color=7c3aed" height="0" />
-  <span style="font-size: 3rem;">🧠 ResolveAI</span>
-</h1>
-
-### **AI-Powered Customer Complaint Resolution Agent**
-
-> *"Turning customer frustration into **intelligent**, real-time resolution."*
-
-<br/>
-
-[🌐 Live Demo](https://ai-customer-complaint-resolution-agent-resolve--koalabunny1515.replit.app/) &nbsp;|&nbsp; [📖 API Docs](http://localhost:8000/docs) &nbsp;|&nbsp; [🎥 Demo Video](#) &nbsp;|&nbsp; [📄 Report / PPT](#)
-
-</div>
+---
 
 ---
 
