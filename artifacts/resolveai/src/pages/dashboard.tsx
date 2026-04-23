@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, BrainCircuit, CheckCircle2, BarChart2, Activity } from "lucide-react";
 import { useT } from "@/components/language-provider";
+import { SlaBreachSummary } from "@/components/sla-breach-summary";
 import { useEffect, useState } from "react";
 import {
   LineChart,
@@ -172,6 +173,11 @@ export default function Dashboard() {
             );
           })}
         </div>
+
+        <SlaBreachSummary
+          companyId={selectedCompanyId}
+          className="fade-in-up"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 fade-in-up" style={{ animationDelay: "400ms" }}>
