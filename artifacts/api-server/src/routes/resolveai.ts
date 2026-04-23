@@ -26,6 +26,8 @@ import {
   GetCustomerParams,
 } from "@workspace/api-zod";
 import { localizeResolution } from "../lib/localize-resolution.js";
+import { imageAnalysisService } from "../lib/image-analysis.js";
+import { enhancedDecisionEngine } from "../lib/decision-engine.js";
 
 const router: IRouter = Router();
 
@@ -45,14 +47,37 @@ router.post("/analyze", async (req, res): Promise<void> => {
     typeof req.body?.companyId === "string" ? req.body.companyId : undefined;
   const language =
     typeof req.body?.language === "string" ? req.body.language : undefined;
+  const imageBase64 =
+    typeof req.body?.imageBase64 === "string" ? req.body.imageBase64 : undefined;
+  const platform =
+    typeof req.body?.platform === "string" ? req.body.platform : undefined;
+  const orderId =
+    typeof req.body?.orderId === "string" ? req.body.orderId : undefined;
 
   const result = analyzeComplaint(complaint, customerId);
+
+  // Multimodal: run image analysis (if image provided) and enhanced decision engine.
+  const imageAnalysis = imageAnalysisService(imageBase64, complaint);
+  const decision = enhancedDecisionEngine(result, imageAnalysis);
+
+  // If decision engine wants to escalate (e.g. fraud), force shouldEscalate so
+  // downstream storage assigns an agent.
+  if (decision.decision === "escalate") {
+    result.shouldEscalate = true;
+    if (!result.escalationSummary) {
+      result.escalationSummary = decision.explanation;
+    }
+  }
+  // If decision engine auto-refunds, surface that in the resolution text.
+  if (decision.decision === "auto_refund") {
+    result.resolution = decision.explanation;
+    result.shouldEscalate = false;
+  }
 
   // Localize the generated resolution server-side at write time so the stored
   // text is already in the customer's UI language.
   if (language && language !== "en") {
-    const localized = localizeResolution(result.resolution, language);
-    result.resolution = localized;
+    result.resolution = localizeResolution(result.resolution, language);
     if (result.escalationSummary) {
       result.escalationSummary = localizeResolution(result.escalationSummary, language);
     }
@@ -65,6 +90,22 @@ router.post("/analyze", async (req, res): Promise<void> => {
   }
 
   const stored = storeComplaint(result, companyId);
+
+  // Persist multimodal fields on the stored record.
+  stored.imageUrl = imageBase64
+    ? imageBase64.startsWith("data:")
+      ? imageBase64
+      : `data:image/jpeg;base64,${imageBase64}`
+    : null;
+  stored.platform = (platform as typeof stored.platform) ?? null;
+  stored.orderId = orderId ?? null;
+  stored.imageAnalysis = imageAnalysis;
+  stored.fraudRisk = decision.fraudRisk;
+  stored.decision = decision.decision;
+  stored.decisionExplanation =
+    language && language !== "en"
+      ? localizeResolution(decision.explanation, language)
+      : decision.explanation;
 
   req.log.info(
     {

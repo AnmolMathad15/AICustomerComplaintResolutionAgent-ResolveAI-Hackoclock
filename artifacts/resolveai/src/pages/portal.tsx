@@ -13,6 +13,9 @@ import {
   ArrowLeft,
   User,
   Bell,
+  ImagePlus,
+  X as XIcon,
+  ShieldAlert,
 } from "lucide-react";
 import {
   useAnalyzeComplaint,
@@ -83,7 +86,22 @@ export default function Portal() {
     return id;
   });
   const [draft, setDraft] = useState("");
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [platform, setPlatform] = useState<"amazon" | "flipkart" | "swiggy" | "other" | "">("");
+  const [orderId, setOrderId] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const submittedRef = useRef<Set<string>>(new Set());
+
+  const onPickImage = (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Please use an image under 4 MB." });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setImageBase64(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  };
 
   const { mutate: analyze, isPending } = useAnalyzeComplaint();
 
@@ -130,11 +148,24 @@ export default function Portal() {
   const submit = () => {
     if (!draft.trim() || !selectedCompanyId || isPending) return;
     analyze(
-      { data: { complaint: draft.trim(), customerId, companyId: selectedCompanyId, language } },
+      {
+        data: {
+          complaint: draft.trim(),
+          customerId,
+          companyId: selectedCompanyId,
+          language,
+          ...(imageBase64 ? { imageBase64 } : {}),
+          ...(platform ? { platform } : {}),
+          ...(orderId.trim() ? { orderId: orderId.trim() } : {}),
+        },
+      },
       {
         onSuccess: (result: AnalyzeComplaintResponse) => {
           submittedRef.current.add(result.ticketId);
           setDraft("");
+          setImageBase64(null);
+          setOrderId("");
+          if (fileInputRef.current) fileInputRef.current.value = "";
           refetch();
           toast({
             title: result.shouldEscalate ? t("portal.toast.routedHuman") : t("portal.toast.resolvedInstantly"),
@@ -305,6 +336,61 @@ export default function Portal() {
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-500/40 resize-none"
                 data-testid="portal-complaint-input"
               />
+
+              {/* Multimodal: platform + order id + optional image */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                <select
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value as typeof platform)}
+                  className="bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-500/40"
+                  data-testid="portal-platform"
+                >
+                  <option value="">Platform (optional)</option>
+                  <option value="amazon">Amazon</option>
+                  <option value="flipkart">Flipkart</option>
+                  <option value="swiggy">Swiggy</option>
+                  <option value="other">Other</option>
+                </select>
+                <input
+                  type="text"
+                  value={orderId}
+                  onChange={(e) => setOrderId(e.target.value)}
+                  placeholder="Order ID (optional)"
+                  className="bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-500/40"
+                  data-testid="portal-order-id"
+                />
+              </div>
+
+              {imageBase64 && (
+                <div className="mt-3 relative inline-block">
+                  <img
+                    src={imageBase64}
+                    alt="attached"
+                    className="h-24 rounded-lg border border-white/10 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageBase64(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/70 border border-white/20 flex items-center justify-center hover:bg-red-500/30"
+                    aria-label="Remove image"
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => onPickImage(e.target.files?.[0])}
+                data-testid="portal-image-input"
+              />
+
               <div className="flex items-center justify-between mt-3 gap-2">
                 <div className="flex items-center gap-2">
                   <VoiceInput
@@ -313,6 +399,16 @@ export default function Portal() {
                       setDraft((prev) => (prev ? `${prev} ${txt}` : txt))
                     }
                   />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach image"
+                    aria-label="Attach image"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-white/15 bg-white/[0.04] text-muted-foreground hover:border-orange-500/40 hover:text-orange-300 transition-all"
+                    data-testid="portal-attach-image"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                  </button>
                   <span className="text-[11px] text-muted-foreground">
                     {t("portal.shortcutHint")}
                   </span>
@@ -427,9 +523,55 @@ export default function Portal() {
                             </span>
                           </div>
                         )}
+                        {c.imageUrl && (
+                          <div className="mt-2 flex gap-2 items-start">
+                            <img
+                              src={c.imageUrl}
+                              alt="attachment"
+                              className="w-16 h-16 rounded-md object-cover border border-white/10"
+                            />
+                            {c.imageAnalysis && (
+                              <div className="text-[10px] text-foreground/75 leading-tight">
+                                <div className="font-medium text-cyan-300">
+                                  {c.imageAnalysis.damageDetected
+                                    ? `Damage: ${c.imageAnalysis.damageType.replace("_", " ")}`
+                                    : "No damage detected"}
+                                </div>
+                                <div>{c.imageAnalysis.confidence}% confidence</div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {(c.platform || c.orderId) && (
+                          <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                            {c.platform && (
+                              <span className="px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.04] capitalize">
+                                {c.platform}
+                              </span>
+                            )}
+                            {c.orderId && (
+                              <span className="px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.04] font-mono">
+                                {c.orderId}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {c.fraudRisk && c.fraudRisk !== "low" && (
+                          <div
+                            className={cn(
+                              "mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px]",
+                              c.fraudRisk === "high"
+                                ? "border-red-500/40 text-red-300 bg-red-500/10"
+                                : "border-amber-500/40 text-amber-300 bg-amber-500/10"
+                            )}
+                          >
+                            <ShieldAlert className="w-3 h-3" />
+                            Fraud risk: {c.fraudRisk}
+                          </div>
+                        )}
                         <div className="mt-2 text-[11px] text-foreground/70 italic">
                           <ExpandableText
-                            text={`"${localizeResolution(c.resolution, language)}"`}
+                            text={`"${localizeResolution(c.decisionExplanation || c.resolution, language)}"`}
                             threshold={120}
                             className="text-foreground/70"
                           />

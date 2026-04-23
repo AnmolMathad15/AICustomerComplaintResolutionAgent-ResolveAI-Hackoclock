@@ -1,0 +1,252 @@
+You are a senior AI + full-stack engineer.
+
+I have an existing SaaS application called "ResolveAI" (React + Node.js).
+The UI, complaint flow, AI analysis, and dashboard are already implemented.
+
+Your job is to:
+
+1. UPGRADE the system with a multimodal AI feature (text + image)
+2. VALIDATE and FIX existing features (language, voice, AI consistency)
+3. DO ALL THIS without breaking existing functionality
+
+---
+
+⚠️ STRICT RULES
+
+* DO NOT rewrite the entire app
+* DO NOT change UI design/layout
+* DO NOT remove existing features
+* ONLY make safe, modular enhancements
+* Preserve backward compatibility
+* Ensure at least one working demo flow
+
+---
+
+# 🎯 PART 1: VALIDATE & FIX EXISTING SYSTEM
+
+## ✅ 1. LANGUAGE SYSTEM (CRITICAL)
+
+Verify:
+
+* Global LanguageContext exists
+* Entire app is wrapped in LanguageProvider
+* All pages use `useLanguage()`
+
+Fix:
+
+* Ensure ALL components re-render on language change
+* Replace hardcoded UI text with language-based mapping
+* Persist language using localStorage
+
+Expected Result:
+✔ Entire app (Dashboard, Portal, Landing) switches language consistently
+
+---
+
+## ✅ 2. VOICE INPUT SYSTEM
+
+Verify:
+
+* Voice input is working
+
+Fix:
+
+* Sync voice recognition with selected language
+
+  const langMap = {
+  en: "en-IN",
+  hi: "hi-IN",
+  kn: "kn-IN"
+  };
+
+  recognition.lang = langMap[selectedLanguage];
+
+Ensure:
+
+* Voice works correctly in Kannada, Hindi, English
+* Transcript is accurate and inserted into input
+
+---
+
+## ✅ 3. AI RESPONSE LANGUAGE
+
+Fix:
+
+* AI responses must match selected language
+
+Modify ONLY prompt:
+
+"Generate a professional response in ${selectedLanguage}"
+
+---
+
+## ✅ 4. FULL FLOW VALIDATION
+
+Test and ensure:
+
+User → submits complaint
+→ AI analyzes
+→ Decision generated
+→ UI updates
+→ Timeline updates
+
+Everything must work without errors
+
+---
+
+# 🚀 PART 2: ADD MULTIMODAL FEATURE (IMAGE + TEXT)
+
+## 📎 1. INPUT UPGRADE
+
+Enhance existing complaint form:
+
+Add:
+
+* Image upload (optional)
+* Platform selector (Amazon / Flipkart / Swiggy / Other)
+* Order ID (optional)
+
+DO NOT break current input system
+
+---
+
+## 🧠 2. IMAGE ANALYSIS SERVICE
+
+Create backend function:
+
+imageAnalysisService(image, text)
+
+Return:
+
+{
+damage_detected: true/false,
+damage_type: "broken / scratched / wrong item / none",
+confidence: 0-100,
+fraud_risk: "low / medium / high"
+}
+
+Implementation:
+
+* Use OpenAI Vision OR mock structured output
+* If no image → skip
+
+---
+
+## ⚙️ 3. ENHANCED DECISION ENGINE
+
+Create:
+
+enhancedDecisionEngine(textAnalysis, imageAnalysis)
+
+Logic:
+
+* If damage_detected = true AND confidence > 80
+  → Auto Refund
+
+* If fraud_risk = high
+  → Escalate
+
+* If no image
+  → fallback to text-based AI
+
+Return:
+
+* decision
+* explanation
+
+---
+
+## 🔁 4. UPDATED FLOW
+
+New pipeline:
+
+User input →
+Text AI analysis →
+IF image exists → Image analysis →
+Combine →
+Decision engine →
+Action →
+Update dashboard + timeline
+
+---
+
+## 📊 5. UI ADDITIONS (MINIMAL)
+
+Add to complaint details:
+
+* Image preview
+* Image AI result:
+  "Damage detected: Broken (85% confidence)"
+* Decision explanation:
+  "Refund approved because damage verified"
+
+DO NOT redesign UI
+
+---
+
+## 🛡️ 6. FRAUD DETECTION
+
+Add:
+
+* fraud_risk field in complaint
+* Show in dashboard:
+  "Fraud Risk: High"
+
+---
+
+## 🧱 7. DATABASE UPDATE
+
+Extend complaint schema:
+
+* image_url
+* image_analysis
+* decision
+* fraud_risk
+
+---
+
+## ⚡ 8. FALLBACKS
+
+* No image → system still works
+* Low confidence → escalate
+* AI failure → safe fallback
+
+---
+
+# 🎯 OUTPUT REQUIRED
+
+Provide:
+
+1. Files to modify (frontend + backend)
+2. Minimal code snippets (no full rewrites)
+3. New services:
+
+   * imageAnalysisService
+   * enhancedDecisionEngine
+4. Updated schema
+5. Example working flow:
+
+Example:
+"Damaged product" + image →
+AI detects damage →
+Auto refund →
+UI updates
+
+---
+
+# 🧠 FINAL GOAL
+
+System should become:
+
+✔ Fully multilingual
+✔ Voice-aware
+✔ Image-aware
+✔ Decision-driven AI system
+
+NOT just a chatbot
+
+---
+
+IMPORTANT:
+Ensure EVERYTHING works together end-to-end.
+Do not leave partial implementation.

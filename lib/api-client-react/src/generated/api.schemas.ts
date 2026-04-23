@@ -14,6 +14,19 @@ export interface ErrorResponse {
   status?: string;
 }
 
+/**
+ * Optional source platform of the order.
+ */
+export type AnalyzeComplaintBodyPlatform =
+  (typeof AnalyzeComplaintBodyPlatform)[keyof typeof AnalyzeComplaintBodyPlatform];
+
+export const AnalyzeComplaintBodyPlatform = {
+  amazon: "amazon",
+  flipkart: "flipkart",
+  swiggy: "swiggy",
+  other: "other",
+} as const;
+
 export interface AnalyzeComplaintBody {
   /** The complaint text from the customer */
   complaint: string;
@@ -23,6 +36,12 @@ export interface AnalyzeComplaintBody {
   companyId?: string;
   /** BCP-47-like UI language code (en, hi, kn, ta, te, es, fr) used to localize the generated resolution text. */
   language?: string;
+  /** Optional base64-encoded image (data URL or raw base64) attached to the complaint for visual damage analysis. */
+  imageBase64?: string;
+  /** Optional source platform of the order. */
+  platform?: AnalyzeComplaintBodyPlatform;
+  /** Optional order/transaction ID supplied by the customer. */
+  orderId?: string;
 }
 
 export interface Agent {
@@ -134,6 +153,68 @@ export const AnalyzeComplaintResponseAuthenticity = {
   likely_fake: "likely_fake",
 } as const;
 
+/**
+ * @nullable
+ */
+export type AnalyzeComplaintResponsePlatform =
+  | (typeof AnalyzeComplaintResponsePlatform)[keyof typeof AnalyzeComplaintResponsePlatform]
+  | null;
+
+export const AnalyzeComplaintResponsePlatform = {
+  amazon: "amazon",
+  flipkart: "flipkart",
+  swiggy: "swiggy",
+  other: "other",
+} as const;
+
+export type AnalyzeComplaintResponseFraudRisk =
+  (typeof AnalyzeComplaintResponseFraudRisk)[keyof typeof AnalyzeComplaintResponseFraudRisk];
+
+export const AnalyzeComplaintResponseFraudRisk = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
+export type AnalyzeComplaintResponseDecision =
+  (typeof AnalyzeComplaintResponseDecision)[keyof typeof AnalyzeComplaintResponseDecision];
+
+export const AnalyzeComplaintResponseDecision = {
+  auto_refund: "auto_refund",
+  auto_resolve: "auto_resolve",
+  escalate: "escalate",
+  request_more_info: "request_more_info",
+} as const;
+
+export type ImageAnalysisResultDamageType =
+  (typeof ImageAnalysisResultDamageType)[keyof typeof ImageAnalysisResultDamageType];
+
+export const ImageAnalysisResultDamageType = {
+  broken: "broken",
+  scratched: "scratched",
+  wrong_item: "wrong_item",
+  stained: "stained",
+  none: "none",
+} as const;
+
+export type ImageAnalysisResultFraudRisk =
+  (typeof ImageAnalysisResultFraudRisk)[keyof typeof ImageAnalysisResultFraudRisk];
+
+export const ImageAnalysisResultFraudRisk = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+} as const;
+
+export interface ImageAnalysisResult {
+  damageDetected: boolean;
+  damageType: ImageAnalysisResultDamageType;
+  /** 0-100 */
+  confidence: number;
+  fraudRisk: ImageAnalysisResultFraudRisk;
+  notes: string;
+}
+
 export interface AnalyzeComplaintResponse {
   ticketId: string;
   customerId: string;
@@ -172,6 +253,19 @@ export interface AnalyzeComplaintResponse {
   authenticity?: AnalyzeComplaintResponseAuthenticity;
   authenticityReasons?: string[];
   priorityRank?: number;
+  /**
+   * Stored image data URL for the complaint (if any).
+   * @nullable
+   */
+  imageUrl?: string | null;
+  /** @nullable */
+  platform?: AnalyzeComplaintResponsePlatform;
+  /** @nullable */
+  orderId?: string | null;
+  imageAnalysis?: ImageAnalysisResult | null;
+  fraudRisk?: AnalyzeComplaintResponseFraudRisk;
+  decision?: AnalyzeComplaintResponseDecision;
+  decisionExplanation?: string;
 }
 
 export type HistoryItemChannel =

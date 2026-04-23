@@ -940,6 +940,20 @@ export interface StoredComplaint extends AnalysisResult {
   authenticityReasons: string[];
   // Numeric priority rank derived from sentiment/severity, used for queue sorting
   priorityRank: number;
+  // Multimodal additions (all optional / nullable for backward compatibility)
+  imageUrl: string | null;
+  platform: "amazon" | "flipkart" | "swiggy" | "other" | null;
+  orderId: string | null;
+  imageAnalysis: {
+    damageDetected: boolean;
+    damageType: "broken" | "scratched" | "wrong_item" | "stained" | "none";
+    confidence: number;
+    fraudRisk: "low" | "medium" | "high";
+    notes: string;
+  } | null;
+  fraudRisk: "low" | "medium" | "high";
+  decision: "auto_refund" | "auto_resolve" | "escalate" | "request_more_info";
+  decisionExplanation: string;
 }
 
 // ─── Fake Complaint Detection (heuristic) ─────────────────────────────────────
@@ -1060,6 +1074,15 @@ export function storeComplaint(
     authenticity,
     authenticityReasons,
     priorityRank,
+    imageUrl: null,
+    platform: null,
+    orderId: null,
+    imageAnalysis: null,
+    fraudRisk: "low",
+    decision: result.shouldEscalate ? "escalate" : "auto_resolve",
+    decisionExplanation: result.shouldEscalate
+      ? result.escalationSummary ?? "Routed to human agent."
+      : result.resolution,
   };
 
   // Auto-assign agent if escalated and company has agents

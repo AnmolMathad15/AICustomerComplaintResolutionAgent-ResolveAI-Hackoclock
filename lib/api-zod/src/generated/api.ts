@@ -29,6 +29,20 @@ export const AnalyzeComplaintBody = zod.object({
     .describe(
       "BCP-47-like UI language code (en, hi, kn, ta, te, es, fr) used to localize the generated resolution text.",
     ),
+  imageBase64: zod
+    .string()
+    .optional()
+    .describe(
+      "Optional base64-encoded image (data URL or raw base64) attached to the complaint for visual damage analysis.",
+    ),
+  platform: zod
+    .enum(["amazon", "flipkart", "swiggy", "other"])
+    .optional()
+    .describe("Optional source platform of the order."),
+  orderId: zod
+    .string()
+    .optional()
+    .describe("Optional order\/transaction ID supplied by the customer."),
 });
 
 export const AnalyzeComplaintResponse = zod.object({
@@ -88,6 +102,43 @@ export const AnalyzeComplaintResponse = zod.object({
   authenticity: zod.enum(["genuine", "suspicious", "likely_fake"]).optional(),
   authenticityReasons: zod.array(zod.string()).optional(),
   priorityRank: zod.number().optional(),
+  imageUrl: zod
+    .string()
+    .nullish()
+    .describe("Stored image data URL for the complaint (if any)."),
+  platform: zod
+    .union([
+      zod.literal("amazon"),
+      zod.literal("flipkart"),
+      zod.literal("swiggy"),
+      zod.literal("other"),
+      zod.literal(null),
+    ])
+    .nullish(),
+  orderId: zod.string().nullish(),
+  imageAnalysis: zod
+    .union([
+      zod.object({
+        damageDetected: zod.boolean(),
+        damageType: zod.enum([
+          "broken",
+          "scratched",
+          "wrong_item",
+          "stained",
+          "none",
+        ]),
+        confidence: zod.number().describe("0-100"),
+        fraudRisk: zod.enum(["low", "medium", "high"]),
+        notes: zod.string(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  fraudRisk: zod.enum(["low", "medium", "high"]).optional(),
+  decision: zod
+    .enum(["auto_refund", "auto_resolve", "escalate", "request_more_info"])
+    .optional(),
+  decisionExplanation: zod.string().optional(),
 });
 
 /**
@@ -156,6 +207,43 @@ export const ListComplaintsResponseItem = zod.object({
   authenticity: zod.enum(["genuine", "suspicious", "likely_fake"]).optional(),
   authenticityReasons: zod.array(zod.string()).optional(),
   priorityRank: zod.number().optional(),
+  imageUrl: zod
+    .string()
+    .nullish()
+    .describe("Stored image data URL for the complaint (if any)."),
+  platform: zod
+    .union([
+      zod.literal("amazon"),
+      zod.literal("flipkart"),
+      zod.literal("swiggy"),
+      zod.literal("other"),
+      zod.literal(null),
+    ])
+    .nullish(),
+  orderId: zod.string().nullish(),
+  imageAnalysis: zod
+    .union([
+      zod.object({
+        damageDetected: zod.boolean(),
+        damageType: zod.enum([
+          "broken",
+          "scratched",
+          "wrong_item",
+          "stained",
+          "none",
+        ]),
+        confidence: zod.number().describe("0-100"),
+        fraudRisk: zod.enum(["low", "medium", "high"]),
+        notes: zod.string(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  fraudRisk: zod.enum(["low", "medium", "high"]).optional(),
+  decision: zod
+    .enum(["auto_refund", "auto_resolve", "escalate", "request_more_info"])
+    .optional(),
+  decisionExplanation: zod.string().optional(),
 });
 export const ListComplaintsResponse = zod.array(ListComplaintsResponseItem);
 
@@ -231,6 +319,43 @@ export const UpdateComplaintResponse = zod.object({
   authenticity: zod.enum(["genuine", "suspicious", "likely_fake"]).optional(),
   authenticityReasons: zod.array(zod.string()).optional(),
   priorityRank: zod.number().optional(),
+  imageUrl: zod
+    .string()
+    .nullish()
+    .describe("Stored image data URL for the complaint (if any)."),
+  platform: zod
+    .union([
+      zod.literal("amazon"),
+      zod.literal("flipkart"),
+      zod.literal("swiggy"),
+      zod.literal("other"),
+      zod.literal(null),
+    ])
+    .nullish(),
+  orderId: zod.string().nullish(),
+  imageAnalysis: zod
+    .union([
+      zod.object({
+        damageDetected: zod.boolean(),
+        damageType: zod.enum([
+          "broken",
+          "scratched",
+          "wrong_item",
+          "stained",
+          "none",
+        ]),
+        confidence: zod.number().describe("0-100"),
+        fraudRisk: zod.enum(["low", "medium", "high"]),
+        notes: zod.string(),
+      }),
+      zod.null(),
+    ])
+    .optional(),
+  fraudRisk: zod.enum(["low", "medium", "high"]).optional(),
+  decision: zod
+    .enum(["auto_refund", "auto_resolve", "escalate", "request_more_info"])
+    .optional(),
+  decisionExplanation: zod.string().optional(),
 });
 
 /**

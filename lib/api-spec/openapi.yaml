@@ -301,6 +301,16 @@ components:
         language:
           type: string
           description: BCP-47-like UI language code (en, hi, kn, ta, te, es, fr) used to localize the generated resolution text.
+        imageBase64:
+          type: string
+          description: Optional base64-encoded image (data URL or raw base64) attached to the complaint for visual damage analysis.
+        platform:
+          type: string
+          enum: [amazon, flipkart, swiggy, other]
+          description: Optional source platform of the order.
+        orderId:
+          type: string
+          description: Optional order/transaction ID supplied by the customer.
       required:
         - complaint
         - customerId
@@ -468,6 +478,26 @@ components:
             type: string
         priorityRank:
           type: integer
+        imageUrl:
+          type: ["string", "null"]
+          description: Stored image data URL for the complaint (if any).
+        platform:
+          type: ["string", "null"]
+          enum: [amazon, flipkart, swiggy, other, null]
+        orderId:
+          type: ["string", "null"]
+        imageAnalysis:
+          oneOf:
+            - $ref: "#/components/schemas/ImageAnalysisResult"
+            - type: "null"
+        fraudRisk:
+          type: string
+          enum: [low, medium, high]
+        decision:
+          type: string
+          enum: [auto_refund, auto_resolve, escalate, request_more_info]
+        decisionExplanation:
+          type: string
       required:
         - ticketId
         - customerId
@@ -491,6 +521,29 @@ components:
         - assignedAgent
         - slaHours
         - createdAt
+
+    ImageAnalysisResult:
+      type: object
+      properties:
+        damageDetected:
+          type: boolean
+        damageType:
+          type: string
+          enum: [broken, scratched, wrong_item, stained, none]
+        confidence:
+          type: number
+          description: 0-100
+        fraudRisk:
+          type: string
+          enum: [low, medium, high]
+        notes:
+          type: string
+      required:
+        - damageDetected
+        - damageType
+        - confidence
+        - fraudRisk
+        - notes
 
     HistoryItem:
       type: object
