@@ -1,10 +1,12 @@
 <div align="center">
 
-<img src="public/<img width="600" height="480" alt="resolveai-logo" src="https://github.com/user-attachments/assets/c137bab2-8a4c-4a4f-87fa-e924334ea07a" />" alt="ResolveAI Logo" width="180"/>
+<img 
+  src="https://raw.githubusercontent.com/AnmolMathad15/AICustomerComplaintResolutionAgent-ResolveAI-Hackoclock/main/public/resolveai-logo.png"
+  width="180"
+  style="border-radius:50%; box-shadow: 0 0 25px #7c3aed, 0 0 50px #7c3aed;"
+/>
 
-# ResolveAI — AI Customer Complaint Resolution Agent
 
-### *Where AI Meets Real Customer Care*
 
 [![Hackathon](https://img.shields.io/badge/Hack0'Clock-2026-f97316?style=for-the-badge&logo=lightning&logoColor=white)](https://github.com)
 [![Track](https://img.shields.io/badge/Track-AI%2FML-7c3aed?style=for-the-badge&logo=brain&logoColor=white)](https://github.com)
