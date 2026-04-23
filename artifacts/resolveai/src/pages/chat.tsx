@@ -263,7 +263,7 @@ export default function Chat() {
           const aiMessage: ChatMessage = {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: result.resolution,
+            content: localizeResolution(result.resolution, language),
             result,
             timestamp: new Date(),
           };
@@ -273,7 +273,7 @@ export default function Chat() {
           const errorMessage: ChatMessage = {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: "Sorry, I couldn't process that complaint. Please try again.",
+            content: t("common.error"),
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, errorMessage]);

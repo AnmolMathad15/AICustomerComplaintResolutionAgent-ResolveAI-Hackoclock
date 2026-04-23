@@ -1,0 +1,143 @@
+You are a senior full-stack engineer.
+
+I have an existing React + Node.js AI SaaS app called "ResolveAI".
+The UI and core functionality are already working.
+
+IMPORTANT:
+
+* DO NOT rewrite the app
+* DO NOT break existing UI or features
+* ONLY make minimal, safe, incremental fixes
+
+---
+
+🎯 OBJECTIVE:
+Fix multilingual support and voice input so that the system behaves consistently across UI, voice, and AI.
+
+---
+
+🌍 ISSUE 1: LANGUAGE SWITCH NOT WORKING GLOBALLY
+
+Problem:
+Language switch (EN / HI / KN) only affects small parts of UI.
+
+Requirements:
+
+* Implement a global language state using React Context
+* Persist selected language using localStorage
+* Ensure ALL visible UI text responds to selected language
+
+Implementation:
+
+1. Create LanguageContext (language + changeLanguage)
+
+2. Wrap app with LanguageProvider
+
+3. Update language dropdown to call changeLanguage()
+
+4. Replace ONLY key visible texts (headings, buttons, labels) using a translation object:
+   Example:
+   const text = {
+   en: { title: "Pick a company" },
+   kn: { title: "ಕಂಪನಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" },
+   hi: { title: "कंपनी चुनें" }
+   }
+
+5. DO NOT refactor entire UI — update safely and incrementally
+
+---
+
+🎙 ISSUE 2: VOICE INPUT NOT MATCHING SELECTED LANGUAGE
+
+Problem:
+Voice input always works in English and is inaccurate for other languages.
+
+Requirements:
+
+* Sync voice recognition language with selected UI language
+* Improve accuracy without breaking existing flow
+
+Implementation:
+
+1. Create language mapping:
+
+   const langMap = {
+   en: "en-IN",
+   hi: "hi-IN",
+   kn: "kn-IN"
+   };
+
+2. Update existing SpeechRecognition:
+
+   recognition.lang = langMap[selectedLanguage];
+
+3. Ensure:
+
+   * When language changes → recognition language updates
+   * Transcript is correctly captured and set in input field
+
+---
+
+🎯 ISSUE 3: VOICE ACCURACY IMPROVEMENT
+
+Requirements:
+
+* Keep existing browser SpeechRecognition
+* Add optional fallback support using OpenAI Whisper API
+
+Implementation:
+
+* If browser recognition fails or low confidence:
+  → send recorded audio to backend
+  → transcribe using Whisper
+
+DO NOT remove current voice system — only enhance it
+
+---
+
+🌐 ISSUE 4: AI RESPONSE LANGUAGE CONSISTENCY
+
+Problem:
+AI responses are always in English
+
+Requirements:
+
+* AI responses must match selected language
+
+Implementation:
+
+* Modify existing OpenAI prompt ONLY:
+
+  "Generate a professional response in ${selectedLanguage}"
+
+* Do NOT change API structure
+
+---
+
+⚠️ CONSTRAINTS
+
+* DO NOT break current UI
+* DO NOT rewrite components unnecessarily
+* DO NOT remove existing features
+* Keep all changes modular and minimal
+* Ensure backward compatibility
+
+---
+
+✅ OUTPUT REQUIRED
+
+1. Minimal code additions (not full rewrites)
+2. Exact files/components to modify
+3. Safe integration steps
+4. Clear explanation of where to plug changes
+
+---
+
+GOAL:
+Make the system fully multilingual and voice-aware, so that:
+
+* UI language changes completely
+* Voice input matches selected language
+* AI responses match selected language
+
+All without breaking the existing app.
