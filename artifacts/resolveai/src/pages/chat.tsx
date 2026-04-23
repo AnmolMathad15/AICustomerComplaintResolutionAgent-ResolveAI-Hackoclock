@@ -21,6 +21,13 @@ import {
   FileText,
   Clock,
   Sparkles,
+  Heart,
+  Flame,
+  Zap,
+  Smile,
+  Meh,
+  ListChecks,
+  Gavel,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT, useLanguage } from "@/components/language-provider";
@@ -77,11 +84,38 @@ function UserBubble({ message }: { message: ChatMessage }) {
   );
 }
 
+const EMOTION_META: Record<
+  string,
+  { label: string; icon: typeof Heart; className: string }
+> = {
+  anger: { label: "Anger", icon: Flame, className: "bg-red-500/15 text-red-500 border-red-500/30" },
+  frustration: { label: "Frustration", icon: Heart, className: "bg-orange-500/15 text-orange-500 border-orange-500/30" },
+  urgency: { label: "Urgency", icon: Zap, className: "bg-amber-500/15 text-amber-500 border-amber-500/30" },
+  positive: { label: "Positive", icon: Smile, className: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30" },
+  neutral: { label: "Neutral", icon: Meh, className: "bg-muted text-muted-foreground border-border" },
+};
+
+const DECISION_META: Record<string, { label: string; className: string }> = {
+  refund: { label: "Refund Approved", className: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30" },
+  replacement: { label: "Replacement", className: "bg-blue-500/15 text-blue-500 border-blue-500/30" },
+  auto_resolve: { label: "Auto-Resolved", className: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30" },
+  escalate: { label: "Escalated", className: "bg-red-500/15 text-red-500 border-red-500/30" },
+  request_more_info: { label: "More Info Needed", className: "bg-amber-500/15 text-amber-500 border-amber-500/30" },
+};
+
 function AiResultBubble({ message }: { message: ChatMessage }) {
   const result = message.result!;
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showReasoning, setShowReasoning] = useState(true);
   const t = useT();
   const { language } = useLanguage();
+  const emotion = (result as any).emotion ?? "neutral";
+  const emotionMeta = EMOTION_META[emotion] ?? EMOTION_META.neutral;
+  const EmotionIcon = emotionMeta.icon;
+  const decision = (result as any).decisionAction ?? (result.shouldEscalate ? "escalate" : "auto_resolve");
+  const decisionMeta = DECISION_META[decision] ?? DECISION_META.auto_resolve;
+  const policyApplied = (result as any).policyApplied as string | undefined;
+  const reasoning = ((result as any).decisionReasoning ?? []) as string[];
 
   return (
     <div className="flex gap-3 items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -99,6 +133,13 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
               </Badge>
               <Badge variant="secondary" className="capitalize text-xs">
                 {localizeType(result.complaintType, t)}
+              </Badge>
+              <Badge variant="outline" className={cn("text-xs gap-1", emotionMeta.className)}>
+                <EmotionIcon className="w-3 h-3" />
+                {emotionMeta.label}
+              </Badge>
+              <Badge variant="outline" className={cn("text-xs", decisionMeta.className)}>
+                {decisionMeta.label}
               </Badge>
               <span className={cn("text-xs font-medium capitalize", getSentimentColor(result.sentiment))}>
                 {localizeSentiment(result.sentiment, t)} {t("complaints.sentimentSuffix")}
@@ -142,6 +183,45 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
                 SLA: <span className="font-semibold ml-0.5">{result.slaHours}h</span>
               </div>
             </div>
+
+            {/* Policy Applied (human readable) */}
+            {policyApplied && (
+              <div className="flex items-start gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+                <Gavel className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                <div className="text-xs">
+                  <div className="text-[10px] uppercase tracking-wider font-semibold text-primary/80">
+                    Policy Applied
+                  </div>
+                  <div className="text-foreground mt-0.5">{policyApplied}</div>
+                </div>
+              </div>
+            )}
+
+            {/* AI Decision Reasoning (judge-winner feature) */}
+            {reasoning.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowReasoning((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  <ListChecks className="w-3.5 h-3.5" />
+                  AI Thinking — Decision Reasoning ({reasoning.length})
+                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showReasoning && "rotate-180")} />
+                </button>
+                {showReasoning && (
+                  <ol className="mt-2 space-y-1.5 rounded-lg bg-muted/40 border p-3 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    {reasoning.map((line, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-primary/70 font-mono tabular-nums shrink-0">
+                          {String(i + 1).padStart(2, "0")}.
+                        </span>
+                        <span className="text-foreground/90 leading-relaxed">{line}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            )}
 
             {/* Why AI made this decision */}
             {result.confidenceBreakdown && (

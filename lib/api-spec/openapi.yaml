@@ -432,6 +432,9 @@ components:
         sentiment:
           type: string
           enum: [positive, neutral, negative]
+        emotion:
+          type: string
+          enum: [anger, frustration, urgency, neutral, positive]
         frustrationScore:
           type: number
         resolution:
@@ -439,6 +442,17 @@ components:
         policyReference:
           type: string
         policyCode:
+          type: string
+        policyApplied:
+          type: string
+        decisionAction:
+          type: string
+          enum: [refund, replacement, auto_resolve, escalate, request_more_info]
+        decisionReasoning:
+          type: array
+          items:
+            type: string
+        empathyPrefix:
           type: string
         shouldEscalate:
           type: boolean
@@ -511,10 +525,15 @@ components:
         - confidenceLevel
         - confidenceBreakdown
         - sentiment
+        - emotion
         - frustrationScore
         - resolution
         - policyReference
         - policyCode
+        - policyApplied
+        - decisionAction
+        - decisionReasoning
+        - empathyPrefix
         - shouldEscalate
         - escalation
         - escalationSummary

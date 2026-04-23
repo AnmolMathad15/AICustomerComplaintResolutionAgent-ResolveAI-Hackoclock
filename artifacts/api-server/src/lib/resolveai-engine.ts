@@ -30,6 +30,7 @@ export type ComplaintType =
 
 export type Severity = "HIGH" | "MEDIUM" | "LOW";
 export type Sentiment = "positive" | "neutral" | "negative";
+export type Emotion = "anger" | "frustration" | "urgency" | "neutral" | "positive";
 export type TicketStatus = "resolved" | "pending" | "escalated" | "in_progress";
 export type Authenticity = "genuine" | "suspicious" | "likely_fake";
 export type TicketChannel = "chat" | "email" | "phone";
@@ -105,10 +106,15 @@ export interface AnalysisResult {
   confidenceLevel: "HIGH" | "MEDIUM" | "LOW";
   confidenceBreakdown: ConfidenceBreakdown;
   sentiment: Sentiment;
+  emotion: Emotion;
   frustrationScore: number;
   resolution: string;
   policyReference: string;
   policyCode: string;
+  policyApplied: string;
+  decisionAction: "refund" | "replacement" | "auto_resolve" | "escalate" | "request_more_info";
+  decisionReasoning: string[];
+  empathyPrefix: string;
   shouldEscalate: boolean;
   escalation: EscalationDetail | null;
   escalationSummary: string | null;
@@ -493,6 +499,173 @@ export function analyzeSentiment(
   return { sentiment, frustrationScore };
 }
 
+// ─── Emotion Detector (5-class) ───────────────────────────────────────────────
+
+const ANGER_WORDS = [
+  "hate",
+  "furious",
+  "outraged",
+  "rage",
+  "pissed",
+  "fuck",
+  "fucking",
+  "shit",
+  "bullshit",
+  "unacceptable",
+  "ridiculous",
+  "disgusting",
+  "appalled",
+  "scam",
+  "fraud",
+  "cheated",
+  "lied",
+];
+
+const URGENCY_WORDS = [
+  "urgent",
+  "urgently",
+  "asap",
+  "immediately",
+  "right now",
+  "right away",
+  "emergency",
+  "critical",
+  "today",
+  "now",
+  "can't wait",
+  "cannot wait",
+];
+
+const FRUSTRATION_WORDS = [
+  "frustrated",
+  "frustrating",
+  "annoyed",
+  "annoying",
+  "fed up",
+  "tired of",
+  "still waiting",
+  "again and again",
+  "every time",
+  "keeps happening",
+  "no response",
+  "no one",
+  "no help",
+  "useless",
+];
+
+export function detectEmotion(
+  text: string,
+  sentiment: Sentiment,
+  frustrationScore: number
+): Emotion {
+  const lower = text.toLowerCase();
+  const exclamations = (text.match(/!/g) || []).length;
+  const capsRatio =
+    text.split("").filter((c) => c >= "A" && c <= "Z").length /
+    Math.max(text.length, 1);
+
+  if (
+    ANGER_WORDS.some((w) => lower.includes(w)) ||
+    frustrationScore >= 75 ||
+    (exclamations >= 3 && capsRatio > 0.25)
+  ) {
+    return "anger";
+  }
+  if (URGENCY_WORDS.some((w) => lower.includes(w))) {
+    return "urgency";
+  }
+  if (
+    FRUSTRATION_WORDS.some((w) => lower.includes(w)) ||
+    frustrationScore >= 45 ||
+    sentiment === "negative"
+  ) {
+    return "frustration";
+  }
+  if (sentiment === "positive") return "positive";
+  return "neutral";
+}
+
+const EMPATHY_LINES: Record<Emotion, string> = {
+  anger:
+    "I completely understand your anger, and I'm truly sorry for what you've been through. Let me make this right immediately. ",
+  frustration:
+    "I understand how frustrating this must be, and I'm sorry for the trouble. Let me fix this for you right away. ",
+  urgency:
+    "I hear you — this is urgent and we'll treat it that way. Resolving it now. ",
+  neutral: "",
+  positive: "",
+};
+
+// ─── Real Policy Engine (machine-readable rules) ──────────────────────────────
+
+export interface PolicyRule {
+  refund_days?: number;
+  replacement_days?: number;
+  resolution_hours?: number;
+  premium_priority_hours?: number;
+  auto_resolve?: boolean;
+  description: string;
+}
+
+export const POLICY_RULES: Record<ComplaintType, PolicyRule> = {
+  billing: {
+    refund_days: 30,
+    resolution_hours: 24,
+    premium_priority_hours: 12,
+    auto_resolve: true,
+    description: "Billing refund within 30 days of charge",
+  },
+  refund: {
+    refund_days: 30,
+    resolution_hours: 48,
+    premium_priority_hours: 24,
+    auto_resolve: true,
+    description: "Refund processed within 5-7 business days",
+  },
+  technical: {
+    resolution_hours: 24,
+    premium_priority_hours: 6,
+    auto_resolve: true,
+    description: "Technical fix within 24 hours, escalate on data loss",
+  },
+  delivery: {
+    replacement_days: 7,
+    resolution_hours: 24,
+    premium_priority_hours: 12,
+    auto_resolve: true,
+    description: "Replacement if delivery is 7+ days late",
+  },
+  account: {
+    resolution_hours: 6,
+    premium_priority_hours: 2,
+    auto_resolve: false,
+    description: "Secure account recovery, escalate if breach suspected",
+  },
+  product_quality: {
+    refund_days: 30,
+    replacement_days: 2,
+    resolution_hours: 24,
+    premium_priority_hours: 12,
+    auto_resolve: true,
+    description: "Free replacement within 1-2 days, refund within 30 days",
+  },
+  unknown: {
+    resolution_hours: 24,
+    description: "General review within 24 hours",
+  },
+};
+
+export function policyEngine(
+  complaintType: ComplaintType,
+  customerTier: string
+): { rule: PolicyRule; description: string; slaHours: number } {
+  const rule = POLICY_RULES[complaintType];
+  const baseSla = rule.resolution_hours ?? 24;
+  const premiumSla = rule.premium_priority_hours ?? Math.max(1, Math.floor(baseSla / 2));
+  const slaHours = customerTier === "Premium" ? premiumSla : baseSla;
+  return { rule, description: rule.description, slaHours };
+}
+
 // ─── Confidence Scoring ───────────────────────────────────────────────────────
 
 /**
@@ -757,8 +930,9 @@ export function analyzeComplaint(
     // Step 1: Classify complaint
     const { complaintType, classificationScore } = classifyComplaint(complaint);
 
-    // Step 2: Analyze sentiment
+    // Step 2: Analyze sentiment + emotion (5-class)
     const { sentiment, frustrationScore } = analyzeSentiment(complaint);
+    const emotion = detectEmotion(complaint, sentiment, frustrationScore);
 
     // Step 3: Compute severity
     const severity = determineSeverity(complaint, complaintType, frustrationScore);
@@ -770,14 +944,21 @@ export function analyzeComplaint(
       customer
     );
 
-    // Step 5: Generate resolution
-    const { resolution, policyReference, policyCode, slaHours } = generateResolution(
+    // Step 5: Generate resolution + apply real policy engine (premium-aware SLA)
+    const { resolution: baseResolution, policyReference, policyCode } = generateResolution(
       complaintType,
       customer
     );
+    const policyDecision = policyEngine(complaintType, customer?.tier ?? "Basic");
+    const slaHours = policyDecision.slaHours;
+    const policyApplied = policyDecision.description;
 
-    // Step 6: Evaluate escalation
-    const { shouldEscalate, escalationReasons, assignedAgent } =
+    // Empathy prefix based on detected emotion
+    const empathyPrefix = EMPATHY_LINES[emotion];
+    const resolution = empathyPrefix + baseResolution;
+
+    // Step 6: Evaluate escalation (auto-escalate on low confidence < 60%)
+    const { shouldEscalate: ruleEscalate, escalationReasons, assignedAgent } =
       evaluateEscalation(
         complaintType,
         sentiment,
@@ -785,6 +966,62 @@ export function analyzeComplaint(
         confidenceScore,
         customer
       );
+    const lowConfidence = confidencePercentage < 60;
+    const shouldEscalate = ruleEscalate || lowConfidence;
+    if (lowConfidence && !ruleEscalate) {
+      escalationReasons.push(
+        `Low AI confidence (${confidencePercentage}%) — escalated for human review`
+      );
+    }
+
+    // Decision action
+    let decisionAction: AnalysisResult["decisionAction"];
+    if (shouldEscalate) {
+      decisionAction = "escalate";
+    } else if (complaintType === "refund" || complaintType === "billing") {
+      decisionAction = "refund";
+    } else if (complaintType === "product_quality" || complaintType === "delivery") {
+      decisionAction = "replacement";
+    } else {
+      decisionAction = "auto_resolve";
+    }
+
+    // Build human-readable reasoning chain
+    const decisionReasoning: string[] = [];
+    decisionReasoning.push(
+      `Identified as ${complaintType.replace("_", " ")} complaint (${Math.round(classificationScore * 100)}% match)`
+    );
+    decisionReasoning.push(
+      `Detected ${sentiment} sentiment with ${emotion} emotion (frustration ${frustrationScore}/100)`
+    );
+    if (customer) {
+      const sameType = customer.history.filter(
+        (h) => h.complaint_type === complaintType
+      );
+      decisionReasoning.push(
+        `Customer tier: ${customer.tier}${customer.tier === "Premium" ? " — priority SLA applied" : ""}`
+      );
+      if (sameType.length > 0) {
+        decisionReasoning.push(
+          `Customer has ${sameType.length} prior ${complaintType.replace("_", " ")} ticket(s)`
+        );
+      }
+    }
+    decisionReasoning.push(`Policy matched: ${policyApplied}`);
+    if (shouldEscalate) {
+      decisionReasoning.push(
+        `Escalation required: ${escalationReasons.join("; ")}`
+      );
+    } else {
+      decisionReasoning.push(
+        `Auto-resolved via ${policyCode} (SLA ${slaHours}h)`
+      );
+    }
+    if (emotion === "anger" || emotion === "frustration") {
+      decisionReasoning.push(
+        `Empathetic response prepended due to ${emotion}`
+      );
+    }
 
     // Step 7: Generate escalation summary if needed
     const escalationSummary = shouldEscalate
@@ -832,10 +1069,15 @@ export function analyzeComplaint(
       confidenceLevel,
       confidenceBreakdown: breakdown,
       sentiment,
+      emotion,
       frustrationScore,
       resolution,
       policyReference,
       policyCode,
+      policyApplied,
+      decisionAction,
+      decisionReasoning,
+      empathyPrefix,
       shouldEscalate,
       escalation,
       escalationSummary,
@@ -866,11 +1108,16 @@ export function analyzeComplaint(
         historyWeight: 0.2,
       },
       sentiment: "neutral",
+      emotion: "neutral",
       frustrationScore: 50,
       resolution:
         "Thank you for contacting us. Our team is reviewing your case and will respond within 24 hours.",
       policyReference: "General Support Policy",
       policyCode: "POL-GEN-1.0",
+      policyApplied: "General review within 24 hours",
+      decisionAction: "auto_resolve",
+      decisionReasoning: ["Fallback path — analysis engine unavailable"],
+      empathyPrefix: "",
       shouldEscalate: false,
       escalation: null,
       escalationSummary: null,

@@ -134,6 +134,28 @@ export const AnalyzeComplaintResponseSentiment = {
   negative: "negative",
 } as const;
 
+export type AnalyzeComplaintResponseEmotion =
+  (typeof AnalyzeComplaintResponseEmotion)[keyof typeof AnalyzeComplaintResponseEmotion];
+
+export const AnalyzeComplaintResponseEmotion = {
+  anger: "anger",
+  frustration: "frustration",
+  urgency: "urgency",
+  neutral: "neutral",
+  positive: "positive",
+} as const;
+
+export type AnalyzeComplaintResponseDecisionAction =
+  (typeof AnalyzeComplaintResponseDecisionAction)[keyof typeof AnalyzeComplaintResponseDecisionAction];
+
+export const AnalyzeComplaintResponseDecisionAction = {
+  refund: "refund",
+  replacement: "replacement",
+  auto_resolve: "auto_resolve",
+  escalate: "escalate",
+  request_more_info: "request_more_info",
+} as const;
+
 export type AnalyzeComplaintResponseStatus =
   (typeof AnalyzeComplaintResponseStatus)[keyof typeof AnalyzeComplaintResponseStatus];
 
@@ -228,10 +250,15 @@ export interface AnalyzeComplaintResponse {
   confidenceLevel: AnalyzeComplaintResponseConfidenceLevel;
   confidenceBreakdown: ConfidenceBreakdown;
   sentiment: AnalyzeComplaintResponseSentiment;
+  emotion: AnalyzeComplaintResponseEmotion;
   frustrationScore: number;
   resolution: string;
   policyReference: string;
   policyCode: string;
+  policyApplied: string;
+  decisionAction: AnalyzeComplaintResponseDecisionAction;
+  decisionReasoning: string[];
+  empathyPrefix: string;
   shouldEscalate: boolean;
   escalation: EscalationDetail | null;
   /** @nullable */

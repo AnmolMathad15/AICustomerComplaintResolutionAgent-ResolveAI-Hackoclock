@@ -1,0 +1,228 @@
+You are a senior AI architect + full-stack engineer.
+
+I have an existing SaaS product called "ResolveAI" (AI Customer Complaint Resolution System) with working UI, backend, and basic AI integration.
+
+Your task is to UPGRADE the system to a HACKATHON-WINNING LEVEL by improving intelligence, accuracy, and real-world decision-making.
+
+⚠️ CRITICAL RULES:
+
+* DO NOT break existing working features
+* DO NOT redesign UI completely
+* ONLY improve logic, intelligence, and correctness
+* REMOVE or FIX any fake / non-functional features
+* Ensure everything works in real-time without lag
+
+---
+
+🎯 CORE GOAL:
+Transform the system from a “basic chatbot” into a “real AI decision-making agent” that:
+
+* Understands complaints deeply
+* Uses customer context
+* Applies policy rules
+* Makes decisions
+* Explains reasoning
+* Handles emotions intelligently
+
+---
+
+🧠 1. INTELLIGENT DECISION ENGINE (MOST IMPORTANT)
+
+Replace generic responses with structured decision-making:
+
+Implement:
+
+* complaintClassification()
+* sentimentAnalysisAdvanced()
+* policyEngine()
+* decisionEngine()
+
+Decision output MUST include:
+
+{
+"decision": "refund / replacement / escalate",
+"confidence": 0-100,
+"reasoning": [
+"Complaint type identified",
+"Policy matched",
+"Customer tier considered"
+],
+"policy_applied": "Refund within 30 days",
+"escalation_required": true/false
+}
+
+AI must ALWAYS explain WHY the decision was taken.
+
+---
+
+💬 2. ADVANCED SENTIMENT + EMOTION HANDLING
+
+Upgrade sentiment system to detect:
+
+* anger
+* frustration
+* urgency
+* neutral
+* positive
+
+If user message is rude/angry:
+
+* AI MUST respond empathetically before solving
+
+Example behavior:
+"I understand you're frustrated. I'm really sorry this happened. Let me fix this immediately."
+
+This is mandatory.
+
+---
+
+👤 3. CUSTOMER CONTEXT MEMORY (REQUIRED)
+
+Integrate past data:
+
+Use:
+
+* previous complaints
+* customer tier (premium/standard)
+* past escalations
+
+Modify decision logic:
+
+* Premium users → faster resolution
+* Repeat issues → escalate faster
+
+---
+
+📜 4. REAL POLICY ENGINE (NOT STATIC TEXT)
+
+Convert policies into machine-readable rules:
+
+Example:
+{
+"damage": {
+"refund_days": 30,
+"replacement_days": 7
+}
+}
+
+AI must:
+
+* Validate decisions against policies
+* NEVER give invalid resolution
+
+---
+
+🌍 5. FULL MULTILINGUAL FIX (CRITICAL BUG FIX)
+
+Fix language system completely:
+
+* When language changes → entire UI updates
+* AI responses MUST match selected language
+* Voice input MUST detect same language
+
+Implement:
+
+* central i18n system
+* translation mapping (not partial text replacement)
+
+---
+
+🎤 6. VOICE AI FIX (IMPORTANT)
+
+Fix voice recognition accuracy:
+
+* Detect selected language (e.g., Kannada)
+* Use correct speech-to-text language model
+* Convert voice → text → AI → response
+
+Flow:
+Voice → STT (language-aware) → AI → response in same language
+
+---
+
+📊 7. REMOVE OR FIX UNUSED FEATURES
+
+Audit system and:
+
+* REMOVE fake or unused modules
+* MERGE duplicate flows (Chat AI vs Analyze AI)
+* Ensure every feature has a clear purpose
+
+---
+
+🧠 8. SHOW AI THINKING (JUDGE WINNER FEATURE)
+
+In UI, show:
+
+* Complaint Type
+* Sentiment
+* Confidence Score
+* Policy Applied
+* Decision Reason
+
+Example:
+"Detected: Damaged product (88%)
+Policy: Refund allowed within 30 days
+Decision: Refund Approved"
+
+---
+
+🧪 9. IMPROVE LOW CONFIDENCE HANDLING
+
+If confidence < 60%:
+
+* Auto escalate
+* Show clear reason
+
+Example:
+"Low confidence due to unclear complaint → Escalated to human"
+
+---
+
+📦 10. ENSURE ONE PERFECT DEMO FLOW
+
+Must work flawlessly:
+
+Input:
+"My phone arrived broken"
+
+System:
+
+* Detect damage
+* High confidence
+* Apply policy
+* Auto approve refund
+* Show reasoning
+
+---
+
+🧱 11. CODE OUTPUT REQUIRED
+
+Provide:
+
+1. decisionEngine() implementation
+2. sentimentAnalysisAdvanced() logic
+3. policyEngine() structure
+4. multilingual fix approach
+5. voice pipeline fix
+6. cleaned architecture (after removing useless features)
+
+---
+
+🎯 FINAL EXPECTATION:
+
+System should feel like:
+
+* Smart human support agent
+* Not a chatbot
+* Not a template system
+
+It must:
+✔ Think
+✔ Decide
+✔ Explain
+✔ Adapt to user emotion
+
+---
+
+END
