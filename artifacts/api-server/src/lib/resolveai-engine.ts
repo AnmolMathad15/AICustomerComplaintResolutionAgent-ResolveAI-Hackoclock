@@ -880,25 +880,149 @@ export function analyzeComplaint(
   }
 }
 
+// ─── Companies / Agents ──────────────────────────────────────────────────────
+
+export interface Agent {
+  id: string;
+  name: string;
+  specialty: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  industry: string;
+  logo: string;
+  color: string;
+  slaHours: number;
+  policies: string[];
+  agents: Agent[];
+}
+
+const companiesPath = path.join(__dirname, "../data/companies.json");
+const companiesData: { companies: Company[] } = JSON.parse(
+  readFileSync(companiesPath, "utf-8")
+);
+
+export function listCompanies(): Company[] {
+  return companiesData.companies;
+}
+
+export function findCompany(id: string): Company | undefined {
+  return companiesData.companies.find((c) => c.id === id);
+}
+
+export function listAgents(companyId?: string): Agent[] {
+  if (!companyId) {
+    return companiesData.companies.flatMap((c) => c.agents);
+  }
+  const company = findCompany(companyId);
+  return company?.agents ?? [];
+}
+
 // ─── In-memory complaint store ────────────────────────────────────────────────
 
 /**
- * In-memory storage for all analyzed complaints in the current session.
+ * Extended complaint record stored in memory. Adds runtime-mutable fields
+ * for company multi-tenancy, status tracking, and agent assignment.
  */
-const complaintStore: AnalysisResult[] = [];
-
-export function storeComplaint(result: AnalysisResult): void {
-  complaintStore.push(result);
+export interface StoredComplaint extends AnalysisResult {
+  companyId: string;
+  companyName: string;
+  status: TicketStatus;
+  assignedAgentId: string | null;
+  agentSpecialty: string | null;
+  resolutionOverride: string | null;
+  updatedAt: string;
 }
 
-export function getAllComplaints(): AnalysisResult[] {
-  return [...complaintStore];
+const complaintStore: StoredComplaint[] = [];
+
+export function storeComplaint(
+  result: AnalysisResult,
+  companyId?: string
+): StoredComplaint {
+  const company = companyId ? findCompany(companyId) : undefined;
+  const status: TicketStatus = result.shouldEscalate ? "escalated" : "resolved";
+
+  const record: StoredComplaint = {
+    ...result,
+    companyId: company?.id ?? companyId ?? "amazon",
+    companyName: company?.name ?? "Amazon",
+    status,
+    assignedAgentId: null,
+    agentSpecialty: null,
+    resolutionOverride: null,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // Auto-assign agent if escalated and company has agents
+  if (status === "escalated" && company && company.agents.length > 0) {
+    const agent = company.agents[Math.floor(Math.random() * company.agents.length)];
+    record.assignedAgentId = agent.id;
+    record.assignedAgent = agent.name;
+    record.agentSpecialty = agent.specialty;
+  }
+
+  complaintStore.push(record);
+  return record;
+}
+
+export function getAllComplaints(filter?: {
+  companyId?: string;
+  customerId?: string;
+}): StoredComplaint[] {
+  let list = [...complaintStore];
+  if (filter?.companyId) list = list.filter((c) => c.companyId === filter.companyId);
+  if (filter?.customerId) list = list.filter((c) => c.customerId === filter.customerId);
+  return list.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 }
 
 export function findComplaintByTicketId(
   ticketId: string
-): AnalysisResult | undefined {
+): StoredComplaint | undefined {
   return complaintStore.find((c) => c.ticketId === ticketId);
+}
+
+export function updateComplaint(
+  ticketId: string,
+  patch: {
+    status?: TicketStatus;
+    assignedAgentId?: string | null;
+    resolutionOverride?: string | null;
+  }
+): StoredComplaint | undefined {
+  const c = complaintStore.find((x) => x.ticketId === ticketId);
+  if (!c) return undefined;
+
+  if (patch.status) c.status = patch.status;
+
+  if (patch.assignedAgentId !== undefined) {
+    if (patch.assignedAgentId === null) {
+      c.assignedAgentId = null;
+      c.assignedAgent = null;
+      c.agentSpecialty = null;
+    } else {
+      const agent = listAgents(c.companyId).find((a) => a.id === patch.assignedAgentId);
+      if (agent) {
+        c.assignedAgentId = agent.id;
+        c.assignedAgent = agent.name;
+        c.agentSpecialty = agent.specialty;
+      }
+    }
+  }
+
+  if (patch.resolutionOverride !== undefined) {
+    c.resolutionOverride = patch.resolutionOverride;
+    if (patch.resolutionOverride) {
+      c.resolution = patch.resolutionOverride;
+    }
+  }
+
+  c.updatedAt = new Date().toISOString();
+  return c;
 }
 
 // ─── Dashboard Stats Generator ────────────────────────────────────────────────
@@ -906,8 +1030,8 @@ export function findComplaintByTicketId(
 /**
  * Computes aggregated stats for the dashboard.
  */
-export function computeDashboardStats() {
-  const complaints = getAllComplaints();
+export function computeDashboardStats(companyId?: string) {
+  const complaints = getAllComplaints({ companyId });
   const total = complaints.length;
   const escalated = complaints.filter((c) => c.shouldEscalate).length;
   const resolvedByAi = total - escalated;

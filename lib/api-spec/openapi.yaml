@@ -69,8 +69,19 @@ paths:
     get:
       operationId: listComplaints
       tags: [complaints]
-      summary: List all complaints
-      description: Returns all complaints processed in the current session
+      summary: List complaints
+      description: Returns complaints processed, optionally filtered by company or customer
+      parameters:
+        - name: companyId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: customerId
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: List of complaints
@@ -80,6 +91,92 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AnalyzeComplaintResponse"
+
+  /complaints/{ticketId}:
+    patch:
+      operationId: updateComplaint
+      tags: [complaints]
+      summary: Update a complaint (assign agent, change status, override resolution)
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateComplaintBody"
+      responses:
+        "200":
+          description: Updated complaint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzeComplaintResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /companies:
+    get:
+      operationId: listCompanies
+      tags: [companies]
+      summary: List all companies
+      responses:
+        "200":
+          description: Companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Company"
+
+  /companies/{companyId}:
+    get:
+      operationId: getCompany
+      tags: [companies]
+      summary: Get a company
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+
+  /companies/{companyId}/agents:
+    get:
+      operationId: listCompanyAgents
+      tags: [companies]
+      summary: List agents for a company
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
 
   /customer/{customerId}:
     get:
@@ -155,6 +252,12 @@ paths:
       tags: [dashboard]
       summary: Get dashboard statistics
       description: Returns aggregated statistics for the dashboard
+      parameters:
+        - name: companyId
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Dashboard statistics
@@ -192,9 +295,59 @@ components:
         customerId:
           type: string
           description: The customer ID
+        companyId:
+          type: string
+          description: Optional target company id
       required:
         - complaint
         - customerId
+
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        specialty:
+          type: string
+      required: [id, name, specialty]
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        industry:
+          type: string
+        logo:
+          type: string
+        color:
+          type: string
+        slaHours:
+          type: integer
+        policies:
+          type: array
+          items:
+            type: string
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Agent"
+      required: [id, name, industry, logo, color, slaHours, policies, agents]
+
+    UpdateComplaintBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [resolved, pending, escalated]
+        assignedAgentId:
+          type: ["string", "null"]
+        resolutionOverride:
+          type: ["string", "null"]
 
     ConfidenceBreakdown:
       type: object
@@ -287,6 +440,21 @@ components:
         slaHours:
           type: integer
         createdAt:
+          type: string
+        companyId:
+          type: string
+        companyName:
+          type: string
+        status:
+          type: string
+          enum: [resolved, pending, escalated]
+        assignedAgentId:
+          type: ["string", "null"]
+        agentSpecialty:
+          type: ["string", "null"]
+        resolutionOverride:
+          type: ["string", "null"]
+        updatedAt:
           type: string
       required:
         - ticketId

@@ -1,13 +1,7 @@
 /**
  * ResolveAI Routes
  *
- * Implements all complaint resolution API endpoints:
- * - POST /analyze
- * - GET  /complaints
- * - GET  /customer/:customerId
- * - GET  /customers
- * - POST /escalate
- * - GET  /dashboard/stats
+ * Implements all complaint resolution API endpoints.
  */
 
 import { Router, type IRouter } from "express";
@@ -16,13 +10,15 @@ import {
   storeComplaint,
   getAllComplaints,
   findComplaintByTicketId,
+  updateComplaint,
   computeDashboardStats,
   customers,
-  generateTicketId,
   generateEscalationSummary,
-  evaluateEscalation,
   classifyComplaint,
-  analyzeSentiment,
+  listCompanies,
+  listAgents,
+  findCompany,
+  type TicketStatus,
 } from "../lib/resolveai-engine.js";
 import {
   AnalyzeComplaintBody,
@@ -35,7 +31,6 @@ const router: IRouter = Router();
 /**
  * POST /analyze
  * Analyzes a customer complaint using AI models.
- * Returns classification, sentiment, resolution, and escalation data.
  */
 router.post("/analyze", async (req, res): Promise<void> => {
   const parsed = AnalyzeComplaintBody.safeParse(req.body);
@@ -45,30 +40,96 @@ router.post("/analyze", async (req, res): Promise<void> => {
   }
 
   const { complaint, customerId } = parsed.data;
+  const companyId =
+    typeof req.body?.companyId === "string" ? req.body.companyId : undefined;
 
   const result = analyzeComplaint(complaint, customerId);
-  storeComplaint(result);
+  const stored = storeComplaint(result, companyId);
 
   req.log.info(
-    { ticketId: result.ticketId, complaintType: result.complaintType },
+    {
+      ticketId: stored.ticketId,
+      complaintType: stored.complaintType,
+      companyId: stored.companyId,
+    },
     "Complaint analyzed and stored"
   );
 
-  res.json(result);
+  res.json(stored);
 });
 
 /**
- * GET /complaints
- * Returns all complaints processed in the current session.
+ * GET /complaints?companyId=&customerId=
+ * Returns complaints, optionally filtered by company / customer.
  */
-router.get("/complaints", async (_req, res): Promise<void> => {
-  const complaints = getAllComplaints();
+router.get("/complaints", async (req, res): Promise<void> => {
+  const companyId =
+    typeof req.query.companyId === "string" ? req.query.companyId : undefined;
+  const customerId =
+    typeof req.query.customerId === "string" ? req.query.customerId : undefined;
+
+  const complaints = getAllComplaints({ companyId, customerId });
   res.json(complaints);
 });
 
 /**
+ * PATCH /complaints/:ticketId
+ * Update status, assigned agent, or override resolution.
+ */
+router.patch("/complaints/:ticketId", async (req, res): Promise<void> => {
+  const ticketId = String(req.params.ticketId);
+  const { status, assignedAgentId, resolutionOverride } = req.body ?? {};
+
+  const validStatuses: TicketStatus[] = ["resolved", "pending", "escalated"];
+  if (status !== undefined && !validStatuses.includes(status)) {
+    res.status(400).json({ error: "Invalid status" });
+    return;
+  }
+
+  const updated = updateComplaint(ticketId, {
+    status,
+    assignedAgentId,
+    resolutionOverride,
+  });
+
+  if (!updated) {
+    res.status(404).json({ error: "Complaint not found" });
+    return;
+  }
+
+  req.log.info({ ticketId, status, assignedAgentId }, "Complaint updated");
+  res.json(updated);
+});
+
+/**
+ * GET /companies
+ */
+router.get("/companies", async (_req, res): Promise<void> => {
+  res.json(listCompanies());
+});
+
+/**
+ * GET /companies/:companyId
+ */
+router.get("/companies/:companyId", async (req, res): Promise<void> => {
+  const company = findCompany(String(req.params.companyId));
+  if (!company) {
+    res.status(404).json({ error: "Company not found" });
+    return;
+  }
+  res.json(company);
+});
+
+/**
+ * GET /companies/:companyId/agents
+ */
+router.get("/companies/:companyId/agents", async (req, res): Promise<void> => {
+  const agents = listAgents(String(req.params.companyId));
+  res.json(agents);
+});
+
+/**
  * GET /customers
- * Returns a summary list of all customers.
  */
 router.get("/customers", async (_req, res): Promise<void> => {
   const summaries = customers.map((c) => {
@@ -92,7 +153,6 @@ router.get("/customers", async (_req, res): Promise<void> => {
 
 /**
  * GET /customer/:customerId
- * Returns full customer profile with interaction history.
  */
 router.get("/customer/:customerId", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.customerId)
@@ -108,12 +168,14 @@ router.get("/customer/:customerId", async (req, res): Promise<void> => {
   const customer = customers.find((c) => c.customer_id === params.data.customerId);
 
   if (!customer) {
-    // Return generic template for unknown customers
-    req.log.warn({ customerId: params.data.customerId }, "Customer not found, returning generic template");
+    req.log.warn(
+      { customerId: params.data.customerId },
+      "Customer not found, returning generic template"
+    );
     res.json({
       customerId: params.data.customerId,
-      name: "Unknown Customer",
-      email: "unknown@example.com",
+      name: "Guest Customer",
+      email: "guest@example.com",
       phone: "N/A",
       tier: "Basic",
       joinDate: new Date().toISOString().split("T")[0],
@@ -122,7 +184,6 @@ router.get("/customer/:customerId", async (req, res): Promise<void> => {
     return;
   }
 
-  // Map to API response shape
   const response = {
     customerId: customer.customer_id,
     name: customer.name,
@@ -147,7 +208,6 @@ router.get("/customer/:customerId", async (req, res): Promise<void> => {
 
 /**
  * POST /escalate
- * Manually escalates a complaint to a human agent.
  */
 router.post("/escalate", async (req, res): Promise<void> => {
   const parsed = EscalateComplaintBody.safeParse(req.body);
@@ -158,38 +218,41 @@ router.post("/escalate", async (req, res): Promise<void> => {
 
   const { ticketId, customerId, reason } = parsed.data;
 
-  // Find existing complaint or create escalation context
   const existingComplaint = findComplaintByTicketId(ticketId);
   const customer = customers.find((c) => c.customer_id === customerId) || null;
+  const company = existingComplaint
+    ? findCompany(existingComplaint.companyId)
+    : undefined;
 
-  // Determine assigned agent
-  const agents = [
-    "Sarah Thompson",
-    "Michael Rodriguez",
-    "Emily Chang",
-    "David Martinez",
-    "Rachel Kim",
-    "James Wilson",
-  ];
-  const assignedAgent = agents[Math.floor(Math.random() * agents.length)];
+  // Pick agent from this company if available
+  const agentPool =
+    company && company.agents.length > 0
+      ? company.agents
+      : [
+          { id: "g1", name: "Sarah Thompson", specialty: "General" },
+          { id: "g2", name: "Michael Rodriguez", specialty: "General" },
+          { id: "g3", name: "Emily Chang", specialty: "General" },
+        ];
+  const agent = agentPool[Math.floor(Math.random() * agentPool.length)];
 
-  // Generate summary
   let summary: string;
   if (existingComplaint) {
-    const { complaintType } = existingComplaint;
     summary = generateEscalationSummary(
       customer,
       existingComplaint.complaint,
-      complaintType,
+      existingComplaint.complaintType,
       [reason]
     );
+    updateComplaint(ticketId, {
+      status: "escalated",
+      assignedAgentId: agent.id,
+    });
   } else {
     const { complaintType } = classifyComplaint(reason);
     summary = generateEscalationSummary(customer, reason, complaintType, [reason]);
   }
 
-  // ETA based on complaint type SLA
-  const slaHours = existingComplaint?.slaHours || 24;
+  const slaHours = existingComplaint?.slaHours ?? company?.slaHours ?? 24;
   const etaDate = new Date(Date.now() + slaHours * 60 * 60 * 1000);
   const eta = etaDate.toLocaleString("en-US", {
     weekday: "short",
@@ -200,13 +263,13 @@ router.post("/escalate", async (req, res): Promise<void> => {
   });
 
   req.log.info(
-    { ticketId, customerId, assignedAgent },
+    { ticketId, customerId, assignedAgent: agent.name },
     "Complaint escalated manually"
   );
 
   res.json({
     escalated: true,
-    assignedAgent,
+    assignedAgent: agent.name,
     summary,
     eta,
     ticketId,
@@ -214,11 +277,12 @@ router.post("/escalate", async (req, res): Promise<void> => {
 });
 
 /**
- * GET /dashboard/stats
- * Returns aggregated statistics for the dashboard.
+ * GET /dashboard/stats?companyId=
  */
-router.get("/dashboard/stats", async (_req, res): Promise<void> => {
-  const stats = computeDashboardStats();
+router.get("/dashboard/stats", async (req, res): Promise<void> => {
+  const companyId =
+    typeof req.query.companyId === "string" ? req.query.companyId : undefined;
+  const stats = computeDashboardStats(companyId);
   res.json(stats);
 });
 

@@ -1,0 +1,232 @@
+Upgrade my existing AI project "ResolveAI – AI Customer Complaint Resolution Agent" into a complete real-time SaaS platform with three core modules:
+
+1. Customer Module
+2. Company (Business) Module
+3. AI Resolution Engine (already exists, improve integration)
+
+Tech Stack:
+- Frontend: Next.js 14 + Tailwind + ShadCN UI
+- Backend: FastAPI (existing)
+- Database: Use PostgreSQL or JSON simulation (hackathon-friendly)
+- Real-time: WebSockets or polling (for live updates)
+
+--------------------------------------------------
+
+🎯 GOAL:
+Transform the system from a simple AI demo into a real-world complaint resolution platform where:
+
+Customer → submits complaint → AI processes → routed to Company → resolved or escalated → tracked in real-time
+
+--------------------------------------------------
+
+🧩 MODULE 1: CUSTOMER SYSTEM
+
+Features:
+
+- Customer login (mock/simple auth)
+- Select Company (Amazon, Flipkart, Swiggy — simulated)
+- Submit complaint via:
+  - Chat interface
+  - Text input
+
+- View:
+  - Complaint history (timeline)
+  - Status (Open / Resolved / Escalated)
+  - AI responses
+  - Assigned agent (if escalated)
+
+- Real-time updates:
+  - Status changes automatically
+  - Escalation updates visible
+
+UI:
+- ChatGPT-style complaint submission
+- Timeline UI for history
+- Status badges (color-coded)
+
+--------------------------------------------------
+
+🏢 MODULE 2: COMPANY SYSTEM (MULTI-TENANT)
+
+Each company must have:
+
+- company_id
+- name
+- industry
+- policies
+- support agents
+
+Features:
+
+- Company dashboard:
+  - Incoming complaints
+  - AI resolved vs escalated
+  - Pending tickets
+
+- Complaint queue:
+  - List of all complaints for that company
+  - Filter by:
+    - status
+    - severity
+    - type
+
+- Agent assignment system:
+  - Assign tickets to agents
+  - Show escalation details
+
+- Resolution override:
+  - Human agent can override AI decision
+
+--------------------------------------------------
+
+🤖 MODULE 3: AI ENGINE (INTEGRATION)
+
+Use existing backend:
+
+Enhance flow:
+
+1. Customer submits complaint
+2. AI:
+   - Classifies complaint
+   - Analyzes sentiment
+   - Fetches policy
+   - Generates resolution
+   - Calculates confidence
+
+3. Decision:
+   IF high confidence:
+      → Auto-resolve
+   ELSE:
+      → Escalate to company
+
+--------------------------------------------------
+
+🔁 REAL-TIME SYSTEM (IMPORTANT)
+
+Implement:
+
+- When complaint is submitted:
+  → instantly appears in company dashboard
+
+- When AI processes:
+  → show "Analyzing..." in frontend
+
+- When escalated:
+  → update UI live
+
+Use:
+- WebSockets OR
+- Polling every 2–5 seconds
+
+--------------------------------------------------
+
+📦 DATABASE STRUCTURE (IMPORTANT)
+
+Create:
+
+1. Customers
+{
+  customer_id,
+  name,
+  email
+}
+
+2. Companies
+{
+  company_id,
+  name,
+  policies
+}
+
+3. Complaints
+{
+  ticket_id,
+  customer_id,
+  company_id,
+  complaint_text,
+  complaint_type,
+  severity,
+  sentiment,
+  resolution,
+  status,
+  assigned_agent,
+  timestamp
+}
+
+4. Agents
+{
+  agent_id,
+  name,
+  company_id,
+  specialty
+}
+
+--------------------------------------------------
+
+🔄 COMPLETE FLOW:
+
+1. Customer selects company
+2. Submits complaint
+3. API call → /analyze
+4. AI processes
+5. Complaint stored in DB
+6. If resolved:
+   → mark as "AI Resolved"
+7. If not:
+   → escalate
+   → assign agent
+8. Company dashboard updates in real-time
+
+--------------------------------------------------
+
+🎨 UI REQUIREMENTS:
+
+- Separate dashboards:
+  - Customer view
+  - Company admin view
+
+- Show:
+  - AI confidence
+  - Policy used
+  - SLA hours
+  - Escalation reasons
+
+- Add:
+  - Frustration meter
+  - Confidence breakdown
+  - Status tracking
+
+--------------------------------------------------
+
+🚀 ADVANCED (HIGH IMPACT):
+
+- Multi-company simulation (3 companies minimum)
+- Role-based UI:
+  - Customer
+  - Company Admin
+  - Agent
+
+- Notifications:
+  - "Your complaint has been escalated"
+  - "Resolved by AI"
+
+--------------------------------------------------
+
+⚠️ IMPORTANT RULES:
+
+- Must NOT be a static demo
+- Must simulate real-world usage
+- Must show actual flow of complaint → company → resolution
+- All modules must be connected
+
+--------------------------------------------------
+
+🎯 FINAL OUTPUT:
+
+A real-time SaaS platform where:
+- Customers submit complaints
+- AI resolves intelligently
+- Companies receive and manage complaints
+- Everything updates live
+
+The system should feel like a real product used by companies.

@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
+import { CompanyProvider } from "@/lib/company-context";
 import NotFound from "@/pages/not-found";
 
 import Splash from "@/pages/splash";
@@ -13,6 +14,7 @@ import Analyze from "@/pages/analyze";
 import Complaints from "@/pages/complaints";
 import Customers from "@/pages/customers";
 import CustomerDetail from "@/pages/customer-detail";
+import Portal from "@/pages/portal";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +22,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Splash} />
+      <Route path="/portal" component={Portal} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/chat" component={Chat} />
       <Route path="/analyze" component={Analyze} />
@@ -36,12 +39,14 @@ function App() {
     <ThemeProvider>
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
-            <Toaster />
-          </TooltipProvider>
+          <CompanyProvider>
+            <TooltipProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+              <Toaster />
+            </TooltipProvider>
+          </CompanyProvider>
         </QueryClientProvider>
       </LanguageProvider>
     </ThemeProvider>

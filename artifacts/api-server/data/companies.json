@@ -1,0 +1,58 @@
+{
+  "companies": [
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "industry": "E-commerce",
+      "logo": "amazon",
+      "color": "#FF9900",
+      "slaHours": 24,
+      "policies": [
+        "Refund within 30 days for damaged or wrong items",
+        "Free replacement for delivery delays beyond 7 days",
+        "Premium members get 24-hour priority resolution"
+      ],
+      "agents": [
+        { "id": "amz-a1", "name": "Sarah Thompson", "specialty": "Refunds & Returns" },
+        { "id": "amz-a2", "name": "Michael Rodriguez", "specialty": "Delivery Issues" },
+        { "id": "amz-a3", "name": "Emily Chang", "specialty": "Account & Billing" }
+      ]
+    },
+    {
+      "id": "flipkart",
+      "name": "Flipkart",
+      "industry": "E-commerce",
+      "logo": "flipkart",
+      "color": "#2874F0",
+      "slaHours": 36,
+      "policies": [
+        "10-day replacement guarantee on all electronics",
+        "Plus members get free same-day pickup for returns",
+        "Cashback for confirmed delivery delays"
+      ],
+      "agents": [
+        { "id": "fk-a1", "name": "David Martinez", "specialty": "Electronics Support" },
+        { "id": "fk-a2", "name": "Rachel Kim", "specialty": "Returns & Refunds" },
+        { "id": "fk-a3", "name": "James Wilson", "specialty": "Order Tracking" }
+      ]
+    },
+    {
+      "id": "swiggy",
+      "name": "Swiggy",
+      "industry": "Food Delivery",
+      "logo": "swiggy",
+      "color": "#FC8019",
+      "slaHours": 6,
+      "policies": [
+        "Full refund for missing or wrong items reported within 1 hour",
+        "Coupon credit for delivery delays beyond 45 minutes",
+        "One quality complaint per order, full refund on confirmed quality issues"
+      ],
+      "agents": [
+        { "id": "sw-a1", "name": "Priya Sharma", "specialty": "Food Quality" },
+        { "id": "sw-a2", "name": "Arjun Patel", "specialty": "Delivery & Riders" },
+        { "id": "sw-a3", "name": "Neha Gupta", "specialty": "Refunds & Compensation" }
+      ]
+    }
+  ]
+}

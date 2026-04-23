@@ -62,3 +62,11 @@ The AI complaint analysis engine (`artifacts/api-server/src/lib/resolveai-engine
 ## Ticket ID Format
 
 `TKT-{timestamp}-{random4digits}` — e.g., `TKT-1776927111447-1410`
+
+## Multi-Tenant SaaS
+
+ResolveAI now supports per-company tenancy. Companies live in `artifacts/api-server/src/data/companies.json` (also copied to `artifacts/api-server/data/`). Each has agents, SLA, and accent color. Currently shipping: Amazon, Flipkart, Swiggy.
+
+Frontend uses a `CompanyProvider` context (`artifacts/resolveai/src/lib/company-context.tsx`) with localStorage persistence. The `<CompanySwitcher />` in the header bar filters Dashboard and Complaints by `companyId`. Both pages use `refetchInterval` for live polling.
+
+The `/portal` route is a customer-facing surface: pick a company, file a complaint, and watch status updates via polling + toasts. Admin operators can override resolutions and assign agents from the Complaints page using `useUpdateComplaint`.

@@ -19,6 +19,42 @@ export interface AnalyzeComplaintBody {
   complaint: string;
   /** The customer ID */
   customerId: string;
+  /** Optional target company id */
+  companyId?: string;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  specialty: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  industry: string;
+  logo: string;
+  color: string;
+  slaHours: number;
+  policies: string[];
+  agents: Agent[];
+}
+
+export type UpdateComplaintBodyStatus =
+  (typeof UpdateComplaintBodyStatus)[keyof typeof UpdateComplaintBodyStatus];
+
+export const UpdateComplaintBodyStatus = {
+  resolved: "resolved",
+  pending: "pending",
+  escalated: "escalated",
+} as const;
+
+export interface UpdateComplaintBody {
+  status?: UpdateComplaintBodyStatus;
+  /** @nullable */
+  assignedAgentId?: string | null;
+  /** @nullable */
+  resolutionOverride?: string | null;
 }
 
 export interface ConfidenceBreakdown {
@@ -76,6 +112,15 @@ export const AnalyzeComplaintResponseSentiment = {
   negative: "negative",
 } as const;
 
+export type AnalyzeComplaintResponseStatus =
+  (typeof AnalyzeComplaintResponseStatus)[keyof typeof AnalyzeComplaintResponseStatus];
+
+export const AnalyzeComplaintResponseStatus = {
+  resolved: "resolved",
+  pending: "pending",
+  escalated: "escalated",
+} as const;
+
 export interface AnalyzeComplaintResponse {
   ticketId: string;
   customerId: string;
@@ -101,6 +146,16 @@ export interface AnalyzeComplaintResponse {
   assignedAgent: string | null;
   slaHours: number;
   createdAt: string;
+  companyId?: string;
+  companyName?: string;
+  status?: AnalyzeComplaintResponseStatus;
+  /** @nullable */
+  assignedAgentId?: string | null;
+  /** @nullable */
+  agentSpecialty?: string | null;
+  /** @nullable */
+  resolutionOverride?: string | null;
+  updatedAt?: string;
 }
 
 export type HistoryItemChannel =
@@ -202,3 +257,12 @@ export interface DashboardStats {
   resolvedRate: number;
   avgFrustrationScore: number;
 }
+
+export type ListComplaintsParams = {
+  companyId?: string;
+  customerId?: string;
+};
+
+export type GetDashboardStatsParams = {
+  companyId?: string;
+};

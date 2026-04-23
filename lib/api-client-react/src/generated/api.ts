@@ -17,15 +17,20 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  Agent,
   AnalyzeComplaintBody,
   AnalyzeComplaintResponse,
+  Company,
   Customer,
   CustomerSummary,
   DashboardStats,
   ErrorResponse,
   EscalateBody,
   EscalateResponse,
+  GetDashboardStatsParams,
   HealthStatus,
+  ListComplaintsParams,
+  UpdateComplaintBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -201,44 +206,60 @@ export const useAnalyzeComplaint = <
 };
 
 /**
- * Returns all complaints processed in the current session
- * @summary List all complaints
+ * Returns complaints processed, optionally filtered by company or customer
+ * @summary List complaints
  */
-export const getListComplaintsUrl = () => {
-  return `/api/complaints`;
+export const getListComplaintsUrl = (params?: ListComplaintsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/complaints?${stringifiedParams}`
+    : `/api/complaints`;
 };
 
 export const listComplaints = async (
+  params?: ListComplaintsParams,
   options?: RequestInit,
 ): Promise<AnalyzeComplaintResponse[]> => {
-  return customFetch<AnalyzeComplaintResponse[]>(getListComplaintsUrl(), {
+  return customFetch<AnalyzeComplaintResponse[]>(getListComplaintsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getListComplaintsQueryKey = () => {
-  return [`/api/complaints`] as const;
+export const getListComplaintsQueryKey = (params?: ListComplaintsParams) => {
+  return [`/api/complaints`, ...(params ? [params] : [])] as const;
 };
 
 export const getListComplaintsQueryOptions = <
   TData = Awaited<ReturnType<typeof listComplaints>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof listComplaints>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params?: ListComplaintsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listComplaints>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getListComplaintsQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getListComplaintsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listComplaints>>> = ({
     signal,
-  }) => listComplaints({ signal, ...requestOptions });
+  }) => listComplaints(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof listComplaints>>,
@@ -253,21 +274,365 @@ export type ListComplaintsQueryResult = NonNullable<
 export type ListComplaintsQueryError = ErrorType<unknown>;
 
 /**
- * @summary List all complaints
+ * @summary List complaints
  */
 
 export function useListComplaints<
   TData = Awaited<ReturnType<typeof listComplaints>>,
   TError = ErrorType<unknown>,
+>(
+  params?: ListComplaintsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listComplaints>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListComplaintsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a complaint (assign agent, change status, override resolution)
+ */
+export const getUpdateComplaintUrl = (ticketId: string) => {
+  return `/api/complaints/${ticketId}`;
+};
+
+export const updateComplaint = async (
+  ticketId: string,
+  updateComplaintBody: UpdateComplaintBody,
+  options?: RequestInit,
+): Promise<AnalyzeComplaintResponse> => {
+  return customFetch<AnalyzeComplaintResponse>(
+    getUpdateComplaintUrl(ticketId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateComplaintBody),
+    },
+  );
+};
+
+export const getUpdateComplaintMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateComplaint>>,
+    TError,
+    { ticketId: string; data: BodyType<UpdateComplaintBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateComplaint>>,
+  TError,
+  { ticketId: string; data: BodyType<UpdateComplaintBody> },
+  TContext
+> => {
+  const mutationKey = ["updateComplaint"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateComplaint>>,
+    { ticketId: string; data: BodyType<UpdateComplaintBody> }
+  > = (props) => {
+    const { ticketId, data } = props ?? {};
+
+    return updateComplaint(ticketId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateComplaintMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateComplaint>>
+>;
+export type UpdateComplaintMutationBody = BodyType<UpdateComplaintBody>;
+export type UpdateComplaintMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a complaint (assign agent, change status, override resolution)
+ */
+export const useUpdateComplaint = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateComplaint>>,
+    TError,
+    { ticketId: string; data: BodyType<UpdateComplaintBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateComplaint>>,
+  TError,
+  { ticketId: string; data: BodyType<UpdateComplaintBody> },
+  TContext
+> => {
+  return useMutation(getUpdateComplaintMutationOptions(options));
+};
+
+/**
+ * @summary List all companies
+ */
+export const getListCompaniesUrl = () => {
+  return `/api/companies`;
+};
+
+export const listCompanies = async (
+  options?: RequestInit,
+): Promise<Company[]> => {
+  return customFetch<Company[]>(getListCompaniesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListCompaniesQueryKey = () => {
+  return [`/api/companies`] as const;
+};
+
+export const getListCompaniesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listCompanies>>,
+  TError = ErrorType<unknown>,
 >(options?: {
   query?: UseQueryOptions<
-    Awaited<ReturnType<typeof listComplaints>>,
+    Awaited<ReturnType<typeof listCompanies>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListCompaniesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompanies>>> = ({
+    signal,
+  }) => listCompanies({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listCompanies>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListCompaniesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listCompanies>>
+>;
+export type ListCompaniesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all companies
+ */
+
+export function useListCompanies<
+  TData = Awaited<ReturnType<typeof listCompanies>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listCompanies>>,
     TError,
     TData
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getListComplaintsQueryOptions(options);
+  const queryOptions = getListCompaniesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a company
+ */
+export const getGetCompanyUrl = (companyId: string) => {
+  return `/api/companies/${companyId}`;
+};
+
+export const getCompany = async (
+  companyId: string,
+  options?: RequestInit,
+): Promise<Company> => {
+  return customFetch<Company>(getGetCompanyUrl(companyId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCompanyQueryKey = (companyId: string) => {
+  return [`/api/companies/${companyId}`] as const;
+};
+
+export const getGetCompanyQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCompany>>,
+  TError = ErrorType<unknown>,
+>(
+  companyId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCompany>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCompanyQueryKey(companyId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompany>>> = ({
+    signal,
+  }) => getCompany(companyId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!companyId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCompany>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCompanyQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCompany>>
+>;
+export type GetCompanyQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get a company
+ */
+
+export function useGetCompany<
+  TData = Awaited<ReturnType<typeof getCompany>>,
+  TError = ErrorType<unknown>,
+>(
+  companyId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCompany>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCompanyQueryOptions(companyId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List agents for a company
+ */
+export const getListCompanyAgentsUrl = (companyId: string) => {
+  return `/api/companies/${companyId}/agents`;
+};
+
+export const listCompanyAgents = async (
+  companyId: string,
+  options?: RequestInit,
+): Promise<Agent[]> => {
+  return customFetch<Agent[]>(getListCompanyAgentsUrl(companyId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListCompanyAgentsQueryKey = (companyId: string) => {
+  return [`/api/companies/${companyId}/agents`] as const;
+};
+
+export const getListCompanyAgentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listCompanyAgents>>,
+  TError = ErrorType<unknown>,
+>(
+  companyId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listCompanyAgents>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListCompanyAgentsQueryKey(companyId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listCompanyAgents>>
+  > = ({ signal }) =>
+    listCompanyAgents(companyId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!companyId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listCompanyAgents>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListCompanyAgentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listCompanyAgents>>
+>;
+export type ListCompanyAgentsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List agents for a company
+ */
+
+export function useListCompanyAgents<
+  TData = Awaited<ReturnType<typeof listCompanyAgents>>,
+  TError = ErrorType<unknown>,
+>(
+  companyId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listCompanyAgents>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListCompanyAgentsQueryOptions(companyId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -531,41 +896,60 @@ export const useEscalateComplaint = <
  * Returns aggregated statistics for the dashboard
  * @summary Get dashboard statistics
  */
-export const getGetDashboardStatsUrl = () => {
-  return `/api/dashboard/stats`;
+export const getGetDashboardStatsUrl = (params?: GetDashboardStatsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/dashboard/stats?${stringifiedParams}`
+    : `/api/dashboard/stats`;
 };
 
 export const getDashboardStats = async (
+  params?: GetDashboardStatsParams,
   options?: RequestInit,
 ): Promise<DashboardStats> => {
-  return customFetch<DashboardStats>(getGetDashboardStatsUrl(), {
+  return customFetch<DashboardStats>(getGetDashboardStatsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetDashboardStatsQueryKey = () => {
-  return [`/api/dashboard/stats`] as const;
+export const getGetDashboardStatsQueryKey = (
+  params?: GetDashboardStatsParams,
+) => {
+  return [`/api/dashboard/stats`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetDashboardStatsQueryOptions = <
   TData = Awaited<ReturnType<typeof getDashboardStats>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getDashboardStats>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params?: GetDashboardStatsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDashboardStats>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetDashboardStatsQueryKey();
+  const queryKey =
+    queryOptions?.queryKey ?? getGetDashboardStatsQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getDashboardStats>>
-  > = ({ signal }) => getDashboardStats({ signal, ...requestOptions });
+  > = ({ signal }) => getDashboardStats(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getDashboardStats>>,
@@ -586,15 +970,18 @@ export type GetDashboardStatsQueryError = ErrorType<unknown>;
 export function useGetDashboardStats<
   TData = Awaited<ReturnType<typeof getDashboardStats>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getDashboardStats>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetDashboardStatsQueryOptions(options);
+>(
+  params?: GetDashboardStatsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDashboardStats>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDashboardStatsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

@@ -1,5 +1,6 @@
 import { Layout } from "@/components/layout";
 import { useGetDashboardStats } from "@workspace/api-client-react";
+import { useCompany } from "@/lib/company-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, BrainCircuit, CheckCircle2, BarChart2, Activity } from "lucide-react";
@@ -37,7 +38,11 @@ function CountUp({ value, suffix = "", decimals = 0 }: { value: number; suffix?:
 }
 
 export default function Dashboard() {
-  const { data: stats, isLoading, isError } = useGetDashboardStats();
+  const { selectedCompanyId, selectedCompany } = useCompany();
+  const params = selectedCompanyId !== "all" ? { companyId: selectedCompanyId } : undefined;
+  const { data: stats, isLoading, isError } = useGetDashboardStats(params, {
+    query: { refetchInterval: 5000 },
+  });
   const t = useT();
 
   if (isLoading) {
@@ -131,7 +136,15 @@ export default function Dashboard() {
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-glow-orange">
             {t("dashboard.title")}
           </h1>
-          <p className="text-muted-foreground mt-2">{t("dashboard.subtitle")}</p>
+          <p className="text-muted-foreground mt-2">
+            {t("dashboard.subtitle")}
+            {selectedCompany && (
+              <span className="ml-2">
+                · Filter:{" "}
+                <span className="text-orange-300 font-medium">{selectedCompany.name}</span>
+              </span>
+            )}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

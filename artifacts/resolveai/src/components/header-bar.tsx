@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
+import { CompanySwitcher } from "@/components/company-switcher";
 import { useT } from "@/components/language-provider";
 
 function useClock() {
@@ -28,6 +29,7 @@ export function HeaderBar() {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
+        <CompanySwitcher />
         <LanguageSelector />
 
         <button

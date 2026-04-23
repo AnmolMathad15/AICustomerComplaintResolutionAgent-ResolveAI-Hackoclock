@@ -7,6 +7,7 @@ import {
   Zap,
   Settings,
   MessageSquare,
+  UserCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BackgroundAmbient } from "@/components/background-ambient";
@@ -28,12 +29,13 @@ export function Layout({ children, pageTitle }: LayoutProps) {
     if (pageTitle) document.title = `ResolveAI | ${pageTitle}`;
   }, [pageTitle]);
 
-  const navItems: { href: string; labelKey: TranslationKey; icon: typeof LayoutDashboard }[] = [
-    { href: "/dashboard", labelKey: "sidebar.dashboard", icon: LayoutDashboard },
-    { href: "/chat", labelKey: "sidebar.chat", icon: MessageSquare },
-    { href: "/analyze", labelKey: "sidebar.analyze", icon: Zap },
-    { href: "/complaints", labelKey: "sidebar.complaints", icon: MessageSquareWarning },
-    { href: "/customers", labelKey: "sidebar.customers", icon: Users },
+  const navItems: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
+    { href: "/dashboard", label: t("sidebar.dashboard"), icon: LayoutDashboard },
+    { href: "/chat", label: t("sidebar.chat"), icon: MessageSquare },
+    { href: "/analyze", label: t("sidebar.analyze"), icon: Zap },
+    { href: "/complaints", label: t("sidebar.complaints"), icon: MessageSquareWarning },
+    { href: "/customers", label: t("sidebar.customers"), icon: Users },
+    { href: "/portal", label: "Customer Portal", icon: UserCircle2 },
   ];
 
   return (
@@ -85,7 +87,7 @@ export function Layout({ children, pageTitle }: LayoutProps) {
                         isActive ? "text-orange-400" : "text-foreground/45 group-hover:text-orange-400"
                       )}
                     />
-                    <span>{t(item.labelKey)}</span>
+                    <span>{item.label}</span>
                   </div>
                 </Link>
               );

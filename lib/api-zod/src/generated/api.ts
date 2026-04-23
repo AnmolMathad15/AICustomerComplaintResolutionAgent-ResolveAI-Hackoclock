@@ -22,6 +22,7 @@ export const HealthCheckResponse = zod.object({
 export const AnalyzeComplaintBody = zod.object({
   complaint: zod.string().describe("The complaint text from the customer"),
   customerId: zod.string().describe("The customer ID"),
+  companyId: zod.string().optional().describe("Optional target company id"),
 });
 
 export const AnalyzeComplaintResponse = zod.object({
@@ -69,12 +70,24 @@ export const AnalyzeComplaintResponse = zod.object({
   assignedAgent: zod.string().nullable(),
   slaHours: zod.number(),
   createdAt: zod.string(),
+  companyId: zod.string().optional(),
+  companyName: zod.string().optional(),
+  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  assignedAgentId: zod.string().nullish(),
+  agentSpecialty: zod.string().nullish(),
+  resolutionOverride: zod.string().nullish(),
+  updatedAt: zod.string().optional(),
 });
 
 /**
- * Returns all complaints processed in the current session
- * @summary List all complaints
+ * Returns complaints processed, optionally filtered by company or customer
+ * @summary List complaints
  */
+export const ListComplaintsQueryParams = zod.object({
+  companyId: zod.coerce.string().optional(),
+  customerId: zod.coerce.string().optional(),
+});
+
 export const ListComplaintsResponseItem = zod.object({
   ticketId: zod.string(),
   customerId: zod.string(),
@@ -120,8 +133,143 @@ export const ListComplaintsResponseItem = zod.object({
   assignedAgent: zod.string().nullable(),
   slaHours: zod.number(),
   createdAt: zod.string(),
+  companyId: zod.string().optional(),
+  companyName: zod.string().optional(),
+  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  assignedAgentId: zod.string().nullish(),
+  agentSpecialty: zod.string().nullish(),
+  resolutionOverride: zod.string().nullish(),
+  updatedAt: zod.string().optional(),
 });
 export const ListComplaintsResponse = zod.array(ListComplaintsResponseItem);
+
+/**
+ * @summary Update a complaint (assign agent, change status, override resolution)
+ */
+export const UpdateComplaintParams = zod.object({
+  ticketId: zod.coerce.string(),
+});
+
+export const UpdateComplaintBody = zod.object({
+  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  assignedAgentId: zod.string().nullish(),
+  resolutionOverride: zod.string().nullish(),
+});
+
+export const UpdateComplaintResponse = zod.object({
+  ticketId: zod.string(),
+  customerId: zod.string(),
+  customerName: zod.string(),
+  customerTier: zod.string(),
+  complaint: zod.string(),
+  complaintType: zod.enum([
+    "billing",
+    "refund",
+    "technical",
+    "delivery",
+    "account",
+    "product_quality",
+    "unknown",
+  ]),
+  severity: zod.enum(["HIGH", "MEDIUM", "LOW"]),
+  confidenceScore: zod.number(),
+  confidencePercentage: zod.number(),
+  confidenceLevel: zod.enum(["HIGH", "MEDIUM", "LOW"]),
+  confidenceBreakdown: zod.object({
+    classificationScore: zod.number(),
+    policyMatchScore: zod.number(),
+    historyFactor: zod.number(),
+    classificationWeight: zod.number(),
+    policyMatchWeight: zod.number(),
+    historyWeight: zod.number(),
+  }),
+  sentiment: zod.enum(["positive", "neutral", "negative"]),
+  frustrationScore: zod.number(),
+  resolution: zod.string(),
+  policyReference: zod.string(),
+  policyCode: zod.string(),
+  shouldEscalate: zod.boolean(),
+  escalation: zod.union([
+    zod.object({
+      assignedAgent: zod.string(),
+      reasons: zod.array(zod.string()),
+      summary: zod.string(),
+    }),
+    zod.null(),
+  ]),
+  escalationSummary: zod.string().nullable(),
+  assignedAgent: zod.string().nullable(),
+  slaHours: zod.number(),
+  createdAt: zod.string(),
+  companyId: zod.string().optional(),
+  companyName: zod.string().optional(),
+  status: zod.enum(["resolved", "pending", "escalated"]).optional(),
+  assignedAgentId: zod.string().nullish(),
+  agentSpecialty: zod.string().nullish(),
+  resolutionOverride: zod.string().nullish(),
+  updatedAt: zod.string().optional(),
+});
+
+/**
+ * @summary List all companies
+ */
+export const ListCompaniesResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  industry: zod.string(),
+  logo: zod.string(),
+  color: zod.string(),
+  slaHours: zod.number(),
+  policies: zod.array(zod.string()),
+  agents: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      specialty: zod.string(),
+    }),
+  ),
+});
+export const ListCompaniesResponse = zod.array(ListCompaniesResponseItem);
+
+/**
+ * @summary Get a company
+ */
+export const GetCompanyParams = zod.object({
+  companyId: zod.coerce.string(),
+});
+
+export const GetCompanyResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  industry: zod.string(),
+  logo: zod.string(),
+  color: zod.string(),
+  slaHours: zod.number(),
+  policies: zod.array(zod.string()),
+  agents: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      specialty: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary List agents for a company
+ */
+export const ListCompanyAgentsParams = zod.object({
+  companyId: zod.coerce.string(),
+});
+
+export const ListCompanyAgentsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  specialty: zod.string(),
+});
+export const ListCompanyAgentsResponse = zod.array(
+  ListCompanyAgentsResponseItem,
+);
 
 /**
  * Returns full customer profile with interaction history
@@ -189,6 +337,10 @@ export const EscalateComplaintResponse = zod.object({
  * Returns aggregated statistics for the dashboard
  * @summary Get dashboard statistics
  */
+export const GetDashboardStatsQueryParams = zod.object({
+  companyId: zod.coerce.string().optional(),
+});
+
 export const GetDashboardStatsResponse = zod.object({
   totalToday: zod.number(),
   resolvedByAi: zod.number(),
