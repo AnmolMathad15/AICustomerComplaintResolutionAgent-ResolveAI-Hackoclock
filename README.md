@@ -58,7 +58,8 @@ Confident?    Not confident / frustrated?
 
 | Landing Page | Command Center |
 |:---:|:---:|
-| ![Landing](screenshots/landing.png) | ![Dashboard](screenshots/dashboard.png) |
+| ![Landing](screenshots/landing.png) | ![Dashboard](screenshots<img width="1912" height="845" alt="dashboard" src="https://github.com/user-attachments/assets/d4ce3e3f-96b5-48e8-a84b-2fd0ee22f832" /><img width="1919" height="849" alt="landing" src="https://github.com/user-attachments/assets/1c94d6b8-3d09-4e67-b21b-50cc450be306" />
+) |
 
 | Chat AI | Customer Portal |
 |:---:|:---:|
@@ -287,9 +288,9 @@ All resolutions are constrained by a rule engine. The AI **cannot** offer refund
 | Name | Role |
 |------|------|
 | Anmol Mathad | Team Lead / Full Stack |
-| [Member 2] | Frontend / UI |
-| [Member 3] | Backend / ML |
-| [Member 4] | Presentation / Testing |
+| Harsha B Ganamukhi | Frontend / UI |
+| Matam  Litika | Backend / ML |
+| Abhishek  S Gadaginamath Presentation / Testing |
 
 ---
 
