@@ -25,6 +25,7 @@ import {
   EscalateComplaintBody,
   GetCustomerParams,
 } from "@workspace/api-zod";
+import { localizeResolution } from "../lib/localize-resolution.js";
 
 const router: IRouter = Router();
 
@@ -42,8 +43,27 @@ router.post("/analyze", async (req, res): Promise<void> => {
   const { complaint, customerId } = parsed.data;
   const companyId =
     typeof req.body?.companyId === "string" ? req.body.companyId : undefined;
+  const language =
+    typeof req.body?.language === "string" ? req.body.language : undefined;
 
   const result = analyzeComplaint(complaint, customerId);
+
+  // Localize the generated resolution server-side at write time so the stored
+  // text is already in the customer's UI language.
+  if (language && language !== "en") {
+    const localized = localizeResolution(result.resolution, language);
+    result.resolution = localized;
+    if (result.escalationSummary) {
+      result.escalationSummary = localizeResolution(result.escalationSummary, language);
+    }
+    if (result.escalation) {
+      result.escalation = {
+        ...result.escalation,
+        summary: localizeResolution(result.escalation.summary, language),
+      };
+    }
+  }
+
   const stored = storeComplaint(result, companyId);
 
   req.log.info(
@@ -51,6 +71,7 @@ router.post("/analyze", async (req, res): Promise<void> => {
       ticketId: stored.ticketId,
       complaintType: stored.complaintType,
       companyId: stored.companyId,
+      language: language ?? "en",
     },
     "Complaint analyzed and stored"
   );

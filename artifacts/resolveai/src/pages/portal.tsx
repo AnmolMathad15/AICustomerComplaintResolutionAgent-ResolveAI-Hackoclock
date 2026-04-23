@@ -130,7 +130,7 @@ export default function Portal() {
   const submit = () => {
     if (!draft.trim() || !selectedCompanyId || isPending) return;
     analyze(
-      { data: { complaint: draft.trim(), customerId, companyId: selectedCompanyId } },
+      { data: { complaint: draft.trim(), customerId, companyId: selectedCompanyId, language } },
       {
         onSuccess: (result: AnalyzeComplaintResponse) => {
           submittedRef.current.add(result.ticketId);

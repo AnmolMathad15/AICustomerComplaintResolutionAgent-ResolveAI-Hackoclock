@@ -257,7 +257,7 @@ export default function Chat() {
     setInput("");
 
     analyzeMutation.mutate(
-      { data: { complaint: complaintText, customerId: selectedCustomerId } },
+      { data: { complaint: complaintText, customerId: selectedCustomerId, language } },
       {
         onSuccess: (result) => {
           const aiMessage: ChatMessage = {

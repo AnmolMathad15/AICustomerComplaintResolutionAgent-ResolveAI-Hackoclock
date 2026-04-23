@@ -21,6 +21,8 @@ export interface AnalyzeComplaintBody {
   customerId: string;
   /** Optional target company id */
   companyId?: string;
+  /** BCP-47-like UI language code (en, hi, kn, ta, te, es, fr) used to localize the generated resolution text. */
+  language?: string;
 }
 
 export interface Agent {

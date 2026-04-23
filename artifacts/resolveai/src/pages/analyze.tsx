@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/components/language-provider";
 import { getSeverityColor, getSentimentColor } from "@/lib/format";
 import { ConfidenceBar } from "@/components/confidence-bar";
 import { FrustrationMeter } from "@/components/frustration-meter";
@@ -51,6 +52,7 @@ export default function Analyze() {
   const [isEscalateDialogOpen, setIsEscalateDialogOpen] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
 
+  const { language } = useLanguage();
   const { data: customers, isLoading: customersLoading } = useListCustomers();
   const analyzeMutation = useAnalyzeComplaint();
   const escalateMutation = useEscalateComplaint();
@@ -63,7 +65,7 @@ export default function Analyze() {
   const onSubmit = (data: AnalyzeFormValues) => {
     setShowBreakdown(false);
     analyzeMutation.mutate(
-      { data },
+      { data: { ...data, language } },
       {
         onSuccess: (response) => {
           setResult(response);

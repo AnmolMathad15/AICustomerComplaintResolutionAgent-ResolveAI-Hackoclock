@@ -23,6 +23,12 @@ export const AnalyzeComplaintBody = zod.object({
   complaint: zod.string().describe("The complaint text from the customer"),
   customerId: zod.string().describe("The customer ID"),
   companyId: zod.string().optional().describe("Optional target company id"),
+  language: zod
+    .string()
+    .optional()
+    .describe(
+      "BCP-47-like UI language code (en, hi, kn, ta, te, es, fr) used to localize the generated resolution text.",
+    ),
 });
 
 export const AnalyzeComplaintResponse = zod.object({
