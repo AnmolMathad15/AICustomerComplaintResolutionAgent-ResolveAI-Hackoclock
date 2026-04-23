@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- HERO BANNER -->
-<img src="hero-banner.png" alt="ResolveAI - AI-Powered Customer Complaint Resolution Agent" width="100%" />
+![Uploading hero-banner.png…]()
 
 <br/>
 <br/>
