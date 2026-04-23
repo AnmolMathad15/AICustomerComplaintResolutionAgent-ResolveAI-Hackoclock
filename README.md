@@ -92,14 +92,14 @@ Customer types complaint
 ### 🧭 Dashboard Overview
 The central control panel showing real-time complaint metrics, AI insights, and system performance.
 
-<img src="assets/dashboard.png" width="100%" />
+
 
 ---
 
 ### 📂 Complaint Management
 View, filter, and manage customer complaints with priority levels, sentiment tags, and status tracking.
 
-<img src="assets/complaints.png" width="100%" />
+
 
 ---
 
