@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout";
-import { useAnalyzeComplaint, useListCustomers, type AnalyzeComplaintResponse } from "@workspace/api-client-react";
+import {
+  useAnalyzeComplaint,
+  useListCustomers,
+  useGetCustomer,
+  type AnalyzeComplaintResponse,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,6 +33,13 @@ import {
   Meh,
   ListChecks,
   Gavel,
+  ShieldAlert,
+  Mail,
+  Phone,
+  MessageSquare,
+  CalendarDays,
+  Ticket,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT, useLanguage } from "@/components/language-provider";
@@ -103,6 +115,99 @@ const DECISION_META: Record<string, { label: string; className: string }> = {
   request_more_info: { label: "More Info Needed", className: "bg-amber-500/15 text-amber-500 border-amber-500/30" },
 };
 
+function NoPolicyMatchCard({ result }: { result: AnalyzeComplaintResponse }) {
+  return (
+    <div
+      className="rounded-xl border-2 p-4 space-y-2.5"
+      style={{
+        background: "rgba(245, 158, 11, 0.06)",
+        borderColor: "rgba(245, 158, 11, 0.35)",
+      }}
+    >
+      <div className="flex items-center gap-2 font-semibold text-amber-400">
+        <AlertTriangle className="w-4 h-4" />
+        No Direct Policy Match
+      </div>
+      <p className="text-sm text-foreground/85 leading-relaxed">
+        This complaint doesn't match our standard policy categories.
+      </p>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="text-muted-foreground">AI Confidence:</span>
+        <Badge
+          variant="outline"
+          className="bg-amber-500/15 text-amber-300 border-amber-500/40 text-[10px] font-semibold tracking-wider"
+        >
+          LOW
+        </Badge>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-foreground/80">
+          Action: <span className="font-medium">Routing to senior agent</span>
+        </span>
+      </div>
+      <blockquote className="border-l-2 border-amber-500/50 pl-3 text-sm italic text-foreground/80">
+        “Our team will review this within 24 hours and provide a custom resolution.”
+      </blockquote>
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1 border-t border-amber-500/15">
+        <FileText className="w-3 h-3" />
+        Policy Used:{" "}
+        <span className="font-mono font-medium text-amber-300/90">POL-GEN-000</span>
+        <span className="text-muted-foreground/70">(General)</span>
+      </div>
+    </div>
+  );
+}
+
+function PolicyAppliedCard({
+  policyCode,
+  description,
+  slaHours,
+  shouldEscalate,
+}: {
+  policyCode: string;
+  description?: string;
+  slaHours: number;
+  shouldEscalate: boolean;
+}) {
+  return (
+    <div
+      className="rounded-xl p-3.5 space-y-2"
+      style={{
+        background: "rgba(249,115,22,0.08)",
+        border: "1px solid rgba(249,115,22,0.2)",
+      }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-orange-400">
+          <Gavel className="w-3 h-3" />
+          Policy Applied
+        </div>
+        <span className="font-mono text-[11px] font-semibold text-orange-300">
+          {policyCode}
+        </span>
+      </div>
+      {description && (
+        <p className="text-sm text-foreground/85 leading-snug">{description}</p>
+      )}
+      <div className="grid grid-cols-3 gap-2 pt-1.5 border-t border-orange-500/15 text-[11px]">
+        <div>
+          <div className="text-muted-foreground">Max refund</div>
+          <div className="font-semibold text-foreground">₹5,000</div>
+        </div>
+        <div>
+          <div className="text-muted-foreground">Processing</div>
+          <div className="font-semibold text-foreground">{slaHours}h SLA</div>
+        </div>
+        <div>
+          <div className="text-muted-foreground">Auto-resolve</div>
+          <div className={cn("font-semibold", shouldEscalate ? "text-red-400" : "text-emerald-400")}>
+            {shouldEscalate ? "No" : "Yes"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AiResultBubble({ message }: { message: ChatMessage }) {
   const result = message.result!;
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -116,6 +221,12 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
   const decisionMeta = DECISION_META[decision] ?? DECISION_META.auto_resolve;
   const policyApplied = (result as any).policyApplied as string | undefined;
   const reasoning = ((result as any).decisionReasoning ?? []) as string[];
+  const policyCode = ((result as any).policyCode ?? result.policyReference ?? "") as string;
+  const isGeneralCase =
+    !policyCode ||
+    policyCode === "POL-GEN-000" ||
+    String(result.complaintType).toLowerCase() === "general" ||
+    String(result.complaintType).toLowerCase() === "other";
 
   return (
     <div className="flex gap-3 items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -149,19 +260,31 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
 
           {/* Body */}
           <div className="px-4 py-4 space-y-4">
-            {/* Resolution */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                AI Resolution
+            {/* Resolution OR No-Policy-Match edge case */}
+            {isGeneralCase ? (
+              <NoPolicyMatchCard result={result} />
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  AI Resolution
+                </div>
+                <ExpandableText
+                  text={localizeResolution(result.resolution, language)}
+                  className="text-foreground"
+                  showMoreLabel={t("common.viewFull" as any) || "View Full"}
+                  showLessLabel={t("common.showLess" as any) || "Show Less"}
+                />
               </div>
-              <ExpandableText
-                text={localizeResolution(result.resolution, language)}
-                className="text-foreground"
-                showMoreLabel={t("common.viewFull" as any) || "View Full"}
-                showLessLabel={t("common.showLess" as any) || "Show Less"}
-              />
-            </div>
+            )}
+
+            {/* Policy Applied — proves policy engine constrains the AI */}
+            <PolicyAppliedCard
+              policyCode={isGeneralCase ? "POL-GEN-000" : policyCode}
+              description={policyApplied}
+              slaHours={result.slaHours}
+              shouldEscalate={result.shouldEscalate || isGeneralCase}
+            />
 
             {/* Confidence + Frustration */}
             <div className="space-y-3">
@@ -307,6 +430,173 @@ function AiResultBubble({ message }: { message: ChatMessage }) {
   );
 }
 
+function CustomerContextPanel({ customerId }: { customerId: string }) {
+  const { data: customer, isLoading } = useGetCustomer(customerId);
+
+  if (isLoading || !customer) {
+    return (
+      <aside className="w-[300px] shrink-0 hidden xl:block">
+        <div className="rounded-xl border bg-card p-4 space-y-3 sticky top-4">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3 w-56" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </aside>
+    );
+  }
+
+  const history = (customer.history ?? []) as Array<{
+    ticketId: string;
+    channel: "chat" | "email" | "phone";
+    date: string;
+    issue: string;
+    complaintType: string;
+    status: "resolved" | "pending" | "escalated";
+  }>;
+
+  const openTickets = history.filter(
+    (h) => h.status === "pending" || h.status === "escalated"
+  ).length;
+  const lastComplaint = [...history].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )[0];
+  const channels = Array.from(new Set(history.map((h) => h.channel)));
+
+  const tierColor: Record<string, string> = {
+    Premium: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    Standard: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+    Basic: "bg-slate-500/15 text-slate-300 border-slate-500/30",
+  };
+
+  const channelIcon: Record<string, typeof MessageSquare> = {
+    chat: MessageSquare,
+    email: Mail,
+    phone: Phone,
+  };
+
+  const memberSince = customer.joinDate
+    ? new Date(customer.joinDate).toLocaleDateString(undefined, {
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+  return (
+    <aside className="w-[300px] shrink-0 hidden xl:block">
+      <div className="sticky top-4 space-y-3">
+        <p className="text-[11px] uppercase tracking-wider text-orange-400 font-semibold leading-snug">
+          AI has read this customer's full history before responding
+        </p>
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="px-4 pt-4 pb-3 border-b bg-muted/30">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Customer Context
+            </div>
+            <div className="text-[11px] text-muted-foreground/80">
+              Loaded before AI responds
+            </div>
+          </div>
+
+          <div className="px-4 py-4 space-y-4">
+            {/* Identity */}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                {customer.name?.[0] ?? "?"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-sm truncate">{customer.name}</div>
+                <Badge
+                  variant="outline"
+                  className={cn("mt-1 text-[10px] font-semibold", tierColor[customer.tier] ?? tierColor.Basic)}
+                >
+                  {customer.tier}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Member since */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CalendarDays className="w-3.5 h-3.5" />
+              Member since <span className="text-foreground font-medium">{memberSince}</span>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg border bg-muted/30 p-2.5">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <History className="w-3 h-3" />
+                  Past issues
+                </div>
+                <div className="text-lg font-bold tabular-nums mt-0.5">{history.length}</div>
+              </div>
+              <div
+                className={cn(
+                  "rounded-lg border p-2.5",
+                  openTickets > 0
+                    ? "border-red-500/40 bg-red-500/10"
+                    : "bg-muted/30"
+                )}
+              >
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <Ticket className="w-3 h-3" />
+                  Open tickets
+                </div>
+                <div
+                  className={cn(
+                    "text-lg font-bold tabular-nums mt-0.5",
+                    openTickets > 0 && "text-red-400"
+                  )}
+                >
+                  {openTickets}
+                </div>
+              </div>
+            </div>
+
+            {/* Last complaint */}
+            {lastComplaint && (
+              <div className="rounded-lg border bg-muted/30 p-2.5 space-y-1">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Last complaint
+                </div>
+                <div className="text-xs text-foreground/90 line-clamp-2">
+                  {lastComplaint.issue}
+                </div>
+                <div className="flex items-center justify-between pt-1 text-[10px] text-muted-foreground">
+                  <span className="capitalize">{lastComplaint.complaintType}</span>
+                  <span>{new Date(lastComplaint.date).toLocaleDateString()}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Channels */}
+            {channels.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Channels used
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {channels.map((ch) => {
+                    const Icon = channelIcon[ch] ?? MessageSquare;
+                    return (
+                      <div
+                        key={ch}
+                        title={ch}
+                        className="w-7 h-7 rounded-md border bg-muted/40 flex items-center justify-center text-foreground/80"
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -373,7 +663,8 @@ export default function Chat() {
   const { language } = useLanguage();
   return (
     <Layout pageTitle="Chat AI">
-      <div className="flex flex-col h-[calc(100vh-10rem)] -mt-2">
+      <div className="flex gap-6 h-[calc(100vh-10rem)] -mt-2">
+        <div className="flex flex-col flex-1 min-w-0">
         <div className="mb-4 fade-in-up">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 text-glow-orange">
             <BrainCircuit className="w-7 h-7 text-orange-400" />
@@ -476,6 +767,10 @@ export default function Chat() {
             )}
           </Button>
         </div>
+        </div>
+        {selectedCustomerId && (
+          <CustomerContextPanel customerId={selectedCustomerId} />
+        )}
       </div>
     </Layout>
   );

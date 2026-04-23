@@ -1,0 +1,784 @@
+This is the FINAL update for ResolveAI before 
+hackathon submission. I need you to fix all bugs,
+complete all missing features, and polish the UI
+to startup/SaaS level in one pass.
+
+ABSOLUTE RULES:
+- Do NOT break any working functionality
+- Fix issues in the exact order listed
+- Test after each fix before proceeding
+- If anything breaks, revert only that change
+- App must NEVER crash or show white screen
+
+════════════════════════════════════════════════
+PRIORITY 1: FIX ALL BROKEN THINGS FIRST
+════════════════════════════════════════════════
+
+FIX 1 — Analyze AI Page Crash:
+Error: "Cannot destructure property 
+'getFieldState' of 'useFormContext(...)' 
+as it is null" in form.tsx line 43
+
+Root cause: FormLabel/FormField components 
+from ShadCN are being used OUTSIDE a 
+<Form> component wrapper, so useFormContext()
+returns null.
+
+Fix: In the Analyze AI page component,
+find all <FormLabel> and <FormField> usage.
+Either:
+Option A: Wrap the entire form in:
+  const form = useForm()
+  return <Form {...form}><form>...</form></Form>
+  
+Option B: Replace ShadCN FormLabel with 
+  plain <label> HTML elements and remove
+  FormField wrapper entirely since we don't
+  need React Hook Form validation here.
+  
+Use Option B — it's simpler and faster.
+Replace every <FormLabel> with <label className="...">
+Replace every <FormField> with plain <div>
+Keep all existing styling classes identical.
+The form must submit exactly as before.
+
+FIX 2 — Bar Chart Still Broken:
+The "Complaints by Category" chart shows 
+as giant solid orange blocks.
+
+Go to the dashboard component. Find the 
+Recharts BarChart. Replace the entire 
+chart component with this exact code:
+
+import { BarChart, Bar, XAxis, YAxis, 
+  CartesianGrid, Tooltip, ResponsiveContainer,
+  Cell } from 'recharts'
+
+const COLORS = {
+  billing: '#f97316',
+  refund: '#8b5cf6', 
+  technical: '#06b6d4',
+  delivery: '#22c55e',
+  account: '#f59e0b',
+  'product quality': '#ec4899'
+}
+
+const ALL_CATEGORIES = [
+  'billing', 'refund', 'technical', 
+  'delivery', 'account', 'product quality'
+]
+
+const chartData = ALL_CATEGORIES.map(cat => ({
+  name: cat.charAt(0).toUpperCase() + cat.slice(1),
+  value: complaintsByType[cat] || 0,
+  color: COLORS[cat]
+}))
+
+<ResponsiveContainer width="100%" height={280}>
+  <BarChart 
+    data={chartData}
+    margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+    barSize={36}
+    barCategoryGap="35%"
+  >
+    <defs>
+      {ALL_CATEGORIES.map((cat, i) => (
+        <linearGradient key={cat} 
+          id={`grad-${i}`} x1="0" y1="0" 
+          x2="0" y2="1">
+          <stop offset="0%" 
+            stopColor={COLORS[cat]} 
+            stopOpacity={0.9}/>
+          <stop offset="100%" 
+            stopColor={COLORS[cat]} 
+            stopOpacity={0.5}/>
+        </linearGradient>
+      ))}
+    </defs>
+    <CartesianGrid 
+      strokeDasharray="3 3" 
+      stroke="rgba(255,255,255,0.06)" 
+      vertical={false}
+    />
+    <XAxis 
+      dataKey="name"
+      tick={{ fill: '#94a3b8', fontSize: 11 }}
+      axisLine={false}
+      tickLine={false}
+      angle={-20}
+      textAnchor="end"
+      height={50}
+    />
+    <YAxis
+      tick={{ fill: '#94a3b8', fontSize: 11 }}
+      axisLine={false}
+      tickLine={false}
+      allowDecimals={false}
+    />
+    <Tooltip
+      contentStyle={{
+        background: 'rgba(10,10,25,0.95)',
+        border: '1px solid rgba(249,115,22,0.3)',
+        borderRadius: '8px',
+        color: '#f1f5f9',
+        fontSize: '13px'
+      }}
+      formatter={(value, name) => [
+        `${value} complaint${value !== 1 ? 's' : ''}`,
+        name
+      ]}
+    />
+    <Bar 
+      dataKey="value" 
+      radius={[6, 6, 0, 0]}
+    >
+      {chartData.map((entry, index) => (
+        <Cell 
+          key={index} 
+          fill={`url(#grad-${index})`}
+        />
+      ))}
+    </Bar>
+  </BarChart>
+</ResponsiveContainer>
+
+FIX 3 — Unknown Customer Bug:
+Find all places showing "Unknown Customer".
+Replace with this fallback chain:
+
+const getCustomerName = (complaint) => {
+  if (complaint?.customer_name && 
+      complaint.customer_name !== 'Unknown') {
+    return complaint.customer_name
+  }
+  if (complaint?.customer_id) {
+    const found = CUSTOMERS_LIST.find(
+      c => c.id === complaint.customer_id
+    )
+    if (found) return found.name
+    return `Customer ${complaint.customer_id}`
+  }
+  return 'Portal Customer'
+}
+
+Apply getCustomerName() everywhere 
+customer name is displayed in complaints.
+
+FIX 4 — SLA Health showing all zeros:
+The SLA Health section on dashboard shows
+"0 active tickets, Within SLA: 0, 
+Approaching: 0, Breached: 0"
+
+This should reflect real complaints_log data.
+Fix the calculation:
+
+const now = new Date()
+const activeSLATickets = complaintsLog.map(c => {
+  const createdAt = new Date(c.timestamp)
+  const slaDeadline = new Date(
+    createdAt.getTime() + c.sla_hours * 60 * 60 * 1000
+  )
+  const hoursLeft = (slaDeadline - now) / (1000 * 60 * 60)
+  
+  if (hoursLeft < 0) return { ...c, slaStatus: 'breached' }
+  if (hoursLeft < 4) return { ...c, slaStatus: 'approaching' }
+  return { ...c, slaStatus: 'within' }
+})
+
+const slaStats = {
+  total: activeSLATickets.length,
+  within: activeSLATickets.filter(
+    t => t.slaStatus === 'within').length,
+  approaching: activeSLATickets.filter(
+    t => t.slaStatus === 'approaching').length,
+  breached: activeSLATickets.filter(
+    t => t.slaStatus === 'breached').length
+}
+
+════════════════════════════════════════════════
+PRIORITY 2: ADD MISSING CRITICAL FEATURES
+════════════════════════════════════════════════
+
+FEATURE 1 — Escalation Queue Page:
+Add route /escalations to sidebar.
+Between "Complaints" and "Customers".
+Red pulsing badge showing escalation count.
+
+Full page:
+
+Header:
+- Title: "Escalation Queue"  
+- Subtitle: "Active complaints requiring 
+  human intervention"
+- Green LIVE badge with pulsing dot
+- Shows: "{count} tickets in queue"
+
+If NO escalations:
+Show centered empty state:
+  Large green checkmark circle (60px)
+  bg: rgba(34,197,94,0.1)
+  border: 2px solid rgba(34,197,94,0.3)
+  Title: "Queue is clear ✓"
+  Subtitle: "ResolveAI is handling 
+  everything automatically"
+  
+If HAS escalations, show cards:
+Each escalation card layout:
+Container: 
+  bg: rgba(239,68,68,0.04)
+  border: 1px solid rgba(239,68,68,0.15)
+  border-left: 4px solid #ef4444
+  border-radius: 12px
+  padding: 20px
+  margin-bottom: 12px
+
+Top row:
+  Left: Ticket ID (monospace #f97316) + 
+        time ago (grey)
+  Right: Severity badge + Company badge
+
+Middle row:
+  Complaint text (2 lines max)
+  Reason pills row:
+    Each in small pill:
+    bg rgba(239,68,68,0.1) 
+    color #fca5a5
+    border 1px solid rgba(239,68,68,0.2)
+    border-radius 20px
+    padding 3px 10px
+    font-size 11px
+
+AI Summary row (if exists):
+  Italic grey text, font-size 13px
+  Prefix: "AI Summary: "
+
+Bottom row:
+  Left: "Assigned to: {agent_name}" 
+        with agent avatar circle
+  Right: Two buttons:
+    "✓ Mark Resolved" 
+      onClick: remove from list,
+      show success toast "Ticket resolved"
+    "View in Chat →"
+      onClick: navigate to /chat
+
+Stats row at top of page (3 cards):
+  Total In Queue | Avg Frustration | Critical (HIGH)
+
+Data: filter complaints_log where 
+should_escalate === true, 
+store resolved ones in local state 
+so marking resolved persists.
+
+Sidebar badge:
+Show red circle badge with count
+Only when count > 0
+Pulse animation:
+@keyframes sidebarPing {
+  0% { transform: scale(1); opacity: 1 }
+  75%, 100% { transform: scale(2); opacity: 0 }
+}
+Use ::after pseudo element or 
+absolute positioned div.
+
+FEATURE 2 — AI Reasoning Panel:
+In Chat AI page, after each AI response card,
+add expandable reasoning section.
+
+Toggle button (below AI response):
+Text: "🔍 View AI Reasoning"
+Style: text-sm, text-slate-400
+border: 1px solid rgba(255,255,255,0.1)
+border-radius: 8px
+padding: 6px 14px
+On hover: border-color rgba(249,115,22,0.3),
+          color #f97316
+Transition: all 0.2s
+
+Panel (expands below button):
+Animation: 
+  max-height: 0 → 380px
+  opacity: 0 → 1  
+  overflow: hidden
+  transition: all 0.35s ease
+
+Panel sections:
+
+Section A — "Confidence Breakdown":
+3 labeled bars:
+
+Bar 1: Classification Accuracy
+value: Math.round(
+  confidence_breakdown?.classification_weight 
+  * 100 || 50)
+color: #06b6d4
+
+Bar 2: Policy Match
+value: Math.round(
+  confidence_breakdown?.policy_weight 
+  * 100 || 30)
+color: #8b5cf6
+
+Bar 3: History Factor  
+value: Math.round(
+  confidence_breakdown?.history_weight 
+  * 100 || 20)
+color: #f97316
+
+Each bar:
+<div style={{display:'flex', 
+  alignItems:'center', gap:'12px', 
+  marginBottom:'10px'}}>
+  <span style={{width:'160px', fontSize:'12px',
+    color:'#94a3b8'}}>{label}</span>
+  <div style={{flex:1, height:'6px',
+    background:'rgba(255,255,255,0.08)',
+    borderRadius:'3px', overflow:'hidden'}}>
+    <div style={{
+      height:'100%',
+      width:`${value}%`,
+      background: color,
+      borderRadius:'3px',
+      transition:'width 1s ease-out'
+    }}/>
+  </div>
+  <span style={{fontSize:'12px', 
+    color:'#f1f5f9', minWidth:'36px',
+    textAlign:'right'}}>{value}%</span>
+</div>
+
+Section B — Decision Pills row:
+[🏷 {complaint_type}] [⚡ {severity}] 
+[📋 {policy_code}] [⏱ SLA: {sla_hours}h]
+
+Section C — Overall Confidence circle:
+80px SVG donut showing confidence_percentage
+Green if >75, yellow if >60, red if <60
+
+Section D — Escalation reasons 
+(only if should_escalate):
+Red box with "Why escalated:" header
+Each reason as bullet point
+
+Close: clicking button again collapses.
+
+FEATURE 3 — Ticket Status Tracker 
+in Customer Portal:
+
+After complaint submitted and response 
+received in the portal, show this in 
+the right panel (replace or add below 
+Live Timeline):
+
+"Your Ticket Status" card:
+
+Header: Ticket ID in orange monospace
++ clipboard copy icon
+On copy: show "✓ Copied" for 2s
+
+Vertical timeline (3 steps):
+Step 1 — always complete:
+  Green filled circle with ✓
+  "Complaint Received"
+  Time: submission timestamp
+
+Step 2 — complete after response:
+  Green filled circle with ✓  
+  "AI Analysis Complete"
+  "{complaint_type} · {severity}"
+
+Step 3 — dynamic:
+  NOT escalated:
+    Green circle with ✓
+    "Resolved by AI"
+    First 80 chars of resolution...
+    Green badge: "No human needed"
+  
+  IS escalated:
+    Red circle with ! (pulsing ring)
+    "Escalated to Human Agent"  
+    "Assigned: {assigned_agent}"
+    "Response: 15-30 minutes"
+    @keyframes ringPulse {
+      0% { box-shadow: 0 0 0 0 
+           rgba(239,68,68,0.4) }
+      70% { box-shadow: 0 0 0 10px 
+            rgba(239,68,68,0) }
+      100% { box-shadow: 0 0 0 0 
+             rgba(239,68,68,0) }
+    }
+    animation: ringPulse 2s infinite
+
+Info row below timeline:
+[Confidence: XX%] [Policy: XXX] [SLA: Xh]
+Each in small pill style
+
+"Submit Another" button at bottom:
+On click: reset form + reset tracker
+          show fresh empty form
+
+════════════════════════════════════════════════
+PRIORITY 3: UI/UX FINAL POLISH
+════════════════════════════════════════════════
+
+POLISH 1 — Fix Sentiment Trend Chart:
+The chart renders a white blob instead 
+of colored lines for positive/neutral/negative.
+
+Make sure chart uses:
+positive: '#22c55e' (green)
+neutral: '#94a3b8' (grey)
+negative: '#ef4444' (red)
+
+Each as a separate Line component with 
+its own stroke color defined explicitly.
+Add proper legend below chart.
+
+POLISH 2 — Confidence Bar Animation:
+When new AI response arrives in chat,
+animate the confidence bar:
+1. Set initial width to 0%
+2. After 150ms delay, animate to final value
+3. Use CSS: transition: width 1.2s ease-out
+4. Also animate the frustration meter 
+   same way with 0.8s duration
+
+Add this via a ref that tracks 
+which message IDs have been animated.
+
+POLISH 3 — Typing Indicator:
+While waiting for API response in Chat AI,
+show animated typing bubble on LEFT side:
+3 bouncing orange dots + 
+"ResolveAI is analyzing..." text
+
+Show only during loading state.
+Auto-scroll to it when it appears.
+
+@keyframes dotBounce {
+  0%, 60%, 100% { transform: translateY(0) }
+  30% { transform: translateY(-6px) }
+}
+.dot1 { animation: dotBounce 1.2s infinite }
+.dot2 { animation: dotBounce 1.2s 0.2s infinite }
+.dot3 { animation: dotBounce 1.2s 0.4s infinite }
+
+POLISH 4 — Hover effects on all cards:
+Customer cards:
+  On hover: translateY(-4px)
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4)
+  border-color: rgba(249,115,22,0.3)
+  transition: all 0.25s ease
+
+Complaint cards:
+  On hover: translateX(3px)
+  border-left-color: #f97316
+  background: rgba(249,115,22,0.02)
+  transition: all 0.2s ease
+
+Stat cards on dashboard:
+  On hover: translateY(-2px)
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3)
+  transition: all 0.2s ease
+
+POLISH 5 — Toast notification system:
+Create a global toast function usable 
+anywhere in the app:
+
+const showToast = (message, type = 'info') => {
+  const colors = {
+    success: { bg: 'rgba(34,197,94,0.15)', 
+               border: '#22c55e', 
+               icon: '✓' },
+    error: { bg: 'rgba(239,68,68,0.15)', 
+             border: '#ef4444', 
+             icon: '!' },
+    warning: { bg: 'rgba(249,115,22,0.15)', 
+               border: '#f97316', 
+               icon: '⚠' },
+    info: { bg: 'rgba(6,182,212,0.15)', 
+            border: '#06b6d4', 
+            icon: 'ℹ' }
+  }
+}
+
+Toast component:
+Position: fixed top-4 right-4 z-50
+Width: 320px
+Slide in from right: 
+  translateX(100%) → translateX(0) 
+  over 0.3s ease
+Auto-dismiss: 4 seconds
+Slide out on dismiss:
+  translateX(0) → translateX(120%)
+
+Show toast when:
+- Complaint analyzed: "info" type
+- Escalation triggered: "warning" type  
+- Ticket resolved: "success" type
+- API error: "error" type
+
+POLISH 6 — Dashboard stats should 
+count up on load:
+When dashboard mounts or stats change,
+animate numbers from 0 to final value:
+
+const useCountUp = (end, duration = 1000) => {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (end === 0) { setCount(0); return }
+    const increment = end / (duration / 16)
+    let current = 0
+    const timer = setInterval(() => {
+      current += increment
+      if (current >= end) {
+        setCount(end)
+        clearInterval(timer)
+      } else {
+        setCount(Math.floor(current))
+      }
+    }, 16)
+    return () => clearInterval(timer)
+  }, [end])
+  return count
+}
+
+Apply to: Total Complaints, AI Resolved, 
+Escalated, Avg Confidence stats.
+
+POLISH 7 — Fix Complaints filter tabs:
+The tabs "All | AI Resolved | In Progress 
+| Escalated | Pending" exist but verify 
+they actually filter the list.
+
+Filtering logic:
+'All': show all
+'AI Resolved': should_escalate === false 
+               AND status !== 'pending'
+'Escalated': should_escalate === true
+'Pending': status === 'pending'
+'In Progress': being processed currently
+
+Make sure clicking each tab 
+actually changes what's displayed.
+
+════════════════════════════════════════════════
+PRIORITY 4: PROBLEM STATEMENT ALIGNMENT
+════════════════════════════════════════════════
+
+Verify these 4 judging criteria are 
+clearly visible in the UI:
+
+1. INNOVATION — Multi-company portal 
+   (Amazon/Flipkart/Swiggy) must be 
+   clearly accessible from sidebar as
+   "Customer Portal" link. ✅ exists
+
+2. TECHNICAL IMPLEMENTATION — 
+   AI Reasoning panel must show 
+   confidence breakdown with 3 components.
+   Policy code must be visible on every 
+   resolution (POL-XXX-000 format).
+
+3. REAL-WORLD IMPACT —
+   Add a small banner on landing page 
+   below the 4 feature cards:
+   
+   "ResolveAI reduces resolution time 
+   from days to seconds — deployable 
+   for any business, any scale."
+   
+   Style: text-center, text-slate-400, 
+   font-size 14px, margin-top 24px
+
+4. PRESENTATION —
+   Every page must have:
+   - Page title (h1, white, bold)
+   - Subtitle (grey, smaller)
+   - At least one visual element 
+     (chart, card, or badge)
+   - No empty states during demo
+     (seed minimal data if needed)
+
+════════════════════════════════════════════════
+PRIORITY 5: DEMO SAFETY
+════════════════════════════════════════════════
+
+SAFETY 1 — Seed demo data on load:
+If complaints_log is empty when app loads,
+automatically add 3 sample complaints 
+so dashboard is never empty during demo:
+
+const SEED_DATA = [
+  {
+    ticket_id: 'TKT-DEMO-0001',
+    customer_name: 'Rahul Sharma',
+    customer_id: 'CUST001',
+    customer_tier: 'Premium',
+    complaint_type: 'refund',
+    complaint: 'My refund has not arrived after 2 weeks',
+    severity: 'MEDIUM',
+    confidence_percentage: 84,
+    confidence_level: 'HIGH',
+    sentiment: 'neutral',
+    frustration_score: 35,
+    resolution: 'Your refund has been initiated and will be credited within 5-7 business days.',
+    policy_code: 'POL-REF-002',
+    sla_hours: 48,
+    should_escalate: false,
+    escalation: null,
+    company: 'Amazon',
+    timestamp: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    ticket_id: 'TKT-DEMO-0002',
+    customer_name: 'Vikram Joshi',
+    customer_id: 'CUST005',
+    customer_tier: 'Premium',
+    complaint_type: 'billing',
+    complaint: 'I am extremely frustrated! Charged 3 times this month!',
+    severity: 'HIGH',
+    confidence_percentage: 52,
+    confidence_level: 'LOW',
+    sentiment: 'negative',
+    frustration_score: 91,
+    resolution: 'Escalated to billing specialist.',
+    policy_code: 'POL-BILL-001',
+    sla_hours: 24,
+    should_escalate: true,
+    escalation: {
+      assigned_agent: 'Sneha Patil',
+      ticket_id: 'ESC-DEMO-0002',
+      escalation_reasons: ['High frustration detected', 'Low confidence'],
+      summary: 'Premium customer with repeated billing issues requiring immediate attention.'
+    },
+    company: 'Flipkart',
+    timestamp: new Date(Date.now() - 1800000).toISOString()
+  },
+  {
+    ticket_id: 'TKT-DEMO-0003',
+    customer_name: 'Priya Nair',
+    customer_id: 'CUST002',
+    customer_tier: 'Standard',
+    complaint_type: 'technical',
+    complaint: 'App keeps crashing when I try to checkout',
+    severity: 'MEDIUM',
+    confidence_percentage: 78,
+    confidence_level: 'HIGH',
+    sentiment: 'neutral',
+    frustration_score: 42,
+    resolution: 'Technical ticket logged. Engineering team will resolve within 24 hours.',
+    policy_code: 'POL-TECH-003',
+    sla_hours: 12,
+    should_escalate: false,
+    escalation: null,
+    company: 'Swiggy',
+    timestamp: new Date(Date.now() - 900000).toISOString()
+  }
+]
+
+On app init: if complaintsLog.length === 0,
+set complaintsLog to SEED_DATA.
+
+SAFETY 2 — Never show white screen:
+Wrap ALL page components in error boundary:
+
+class ErrorBoundary extends React.Component {
+  state = { hasError: false }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          display:'flex', flexDirection:'column',
+          alignItems:'center', justifyContent:'center',
+          height:'60vh', gap:'16px'
+        }}>
+          <div style={{fontSize:'48px'}}>⚡</div>
+          <h2 style={{color:'#f1f5f9'}}>
+            Refreshing AI systems...</h2>
+          <p style={{color:'#94a3b8'}}>
+            Please reload the page</p>
+          <button onClick={() => 
+            window.location.reload()}
+            style={{
+              background:'#f97316',
+              color:'white',
+              border:'none',
+              padding:'10px 24px',
+              borderRadius:'8px',
+              cursor:'pointer'
+            }}>
+            Reload
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+Wrap each page: 
+<ErrorBoundary><PageComponent/></ErrorBoundary>
+
+SAFETY 3 — API timeout handling:
+All fetch calls to backend must have 
+a 10 second timeout:
+
+const fetchWithTimeout = async (url, options, 
+  timeout = 10000) => {
+  const controller = new AbortController()
+  const id = setTimeout(
+    () => controller.abort(), timeout)
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(id)
+    return response
+  } catch (error) {
+    clearTimeout(id)
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out')
+    }
+    throw error
+  }
+}
+
+On timeout: show mock response so 
+UI never freezes during demo.
+
+════════════════════════════════════════════════
+FINAL CHECKLIST — VERIFY ALL BEFORE DONE:
+════════════════════════════════════════════════
+
+[ ] Analyze AI page loads without error
+[ ] Bar chart shows 6 colored bars
+[ ] No "Unknown Customer" anywhere
+[ ] SLA Health shows real numbers
+[ ] Escalation Queue page exists in sidebar
+[ ] AI Reasoning panel opens/closes in chat
+[ ] Ticket tracker shows in portal after submit
+[ ] Toast notifications appear on actions
+[ ] Hover effects on cards
+[ ] Typing indicator in chat
+[ ] Dashboard numbers count up
+[ ] Seed data loads so dashboard not empty
+[ ] Error boundaries on all pages
+[ ] App never crashes during any interaction
+[ ] All 8 pages accessible and working:
+    / (landing)
+    /dashboard
+    /chat
+    /analyze
+    /complaints
+    /customers
+    /escalations (NEW)
+    /portal
+
+Do each fix in order. Confirm each 
+step before proceeding.
+Start with FIX 1 (Analyze AI crash) NOW.
