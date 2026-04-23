@@ -46,6 +46,7 @@ import { useT, useLanguage } from "@/components/language-provider";
 import { VoiceInput } from "@/components/voice-input";
 import { ExpandableText } from "@/components/expandable-text";
 import { localizeResolution, voiceLocaleFor } from "@/lib/localize-resolution";
+import { voiceMessages } from "@/lib/voice-messages";
 import { localizeType, localizeSeverity, localizeSentiment } from "@/lib/badge-labels";
 
 interface ChatMessage {
@@ -601,8 +602,19 @@ export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { language } = useLanguage();
+  const vmsg = voiceMessages(language);
+
+  // Auto-clear voice error after 4s
+  useEffect(() => {
+    if (!voiceError) return;
+    const timer = setTimeout(() => setVoiceError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [voiceError]);
 
   const { data: customers, isLoading: customersLoading } = useListCustomers();
   const analyzeMutation = useAnalyzeComplaint();
@@ -660,7 +672,6 @@ export default function Chat() {
   };
 
   const t = useT();
-  const { language } = useLanguage();
   return (
     <Layout pageTitle="Chat AI">
       <div className="flex gap-6 h-[calc(100vh-10rem)] -mt-2">
@@ -736,6 +747,34 @@ export default function Chat() {
           <div ref={bottomRef} />
         </div>
 
+        {/* Listening / voice-error banner */}
+        {(voiceListening || voiceError) && (
+          <div
+            className={cn(
+              "mt-3 flex items-center gap-2 rounded-md border px-3 py-2 text-sm fade-in-up",
+              voiceError
+                ? "border-red-500/40 bg-red-500/10 text-red-200"
+                : "border-orange-500/40 bg-orange-500/10 text-orange-200"
+            )}
+            data-testid={voiceError ? "voice-error" : "voice-listening"}
+          >
+            {voiceError ? (
+              <>
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{voiceError}</span>
+              </>
+            ) : (
+              <>
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+                </span>
+                <span>{vmsg.listening}</span>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Input */}
         <div className="mt-3 flex gap-2 items-end">
           <Textarea
@@ -751,6 +790,22 @@ export default function Chat() {
           <VoiceInput
             className="h-[52px] w-[52px] shrink-0"
             lang={voiceLocaleFor(language)}
+            title={vmsg.tooltip}
+            onListeningChange={(l) => {
+              setVoiceListening(l);
+              if (l) setVoiceError(null);
+            }}
+            onError={(code) => {
+              const msg =
+                code === "no-speech"
+                  ? vmsg.noSpeech
+                  : code === "network"
+                    ? vmsg.network
+                    : code === "not-allowed"
+                      ? vmsg.notAllowed
+                      : vmsg.noSpeech;
+              setVoiceError(msg);
+            }}
             onTranscript={(txt) =>
               setInput((prev) => (prev ? `${prev} ${txt}` : txt))
             }

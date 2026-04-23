@@ -1,0 +1,1349 @@
+Improve the multilingual and voice input system 
+in ResolveAI to be fully functional and production-grade.
+
+CURRENT STATE:
+- Language selector exists (EN/HI/KN/TA/TE/ES/FR)
+- Voice input button exists in chat
+- BUT: system still responds in English regardless
+  of selected language
+- Voice input doesn't recognize regional languages
+
+DO NOT break any existing functionality.
+Implement all changes carefully in order.
+
+════════════════════════════════════════════════
+PART 1: COMPLETE TRANSLATION SYSTEM
+════════════════════════════════════════════════
+
+Create /lib/translations.ts with ALL UI text:
+
+export const translations = {
+  en: {
+    // Navigation
+    dashboard: "Dashboard",
+    chatAI: "Chat AI",
+    analyzeAI: "Analyze AI",
+    complaints: "Complaints",
+    customers: "Customers",
+    escalations: "Escalations",
+    customerPortal: "Customer Portal",
+    settings: "Settings",
+
+    // Dashboard
+    commandCenter: "Command Center",
+    commandSubtitle: "Real-time overview of complaint resolution operations.",
+    totalComplaints: "Total Complaints Today",
+    aiResolved: "AI Resolved",
+    escalated: "Escalated",
+    avgConfidence: "Avg AI Confidence",
+    activeVolume: "Active volume",
+    resolutionRate: "resolution rate",
+    requiresHuman: "Requires human agent",
+    acrossModels: "Across all models",
+    slaHealth: "SLA Health",
+    activeTickets: "active tickets",
+    withinSLA: "Within SLA",
+    approaching: "Approaching",
+    breached: "Breached",
+    sentimentTrend: "Sentiment Trend",
+    complaintsByCategory: "Complaints by Category",
+    activityFeed: "Activity Feed",
+    positive: "positive",
+    neutral: "neutral",
+    negative: "negative",
+
+    // Chat
+    chatTitle: "Chat AI",
+    chatSubtitle: "Submit complaints conversationally and get real-time AI analysis.",
+    chatPlaceholder: "Describe the customer's complaint...",
+    selectCustomer: "Select a customer",
+    analyzing: "ResolveAI is analyzing...",
+    aiResolution: "AI Resolution",
+    aiConfidence: "AI Confidence",
+    frustrationMeter: "Frustration Meter",
+    viewFull: "View Full",
+    viewReasoning: "View AI Reasoning",
+    policyApplied: "Policy Applied",
+    refundApproved: "Refund Approved",
+    escalationTriggered: "Escalation Triggered",
+    calm: "Calm",
+    moderate: "Moderate",
+    high: "High",
+    critical: "Critical",
+    sendButton: "Send",
+    listeningText: "Listening... speak your complaint",
+    voiceTooltip: "Voice input (Chrome recommended)",
+    confidenceBreakdown: "Confidence Breakdown",
+    classificationAccuracy: "Classification Accuracy",
+    policyMatch: "Policy Match",
+    historyFactor: "History Factor",
+    overallConfidence: "Overall Confidence",
+    whyEscalated: "Why Escalated",
+    decisionFactors: "Decision Factors",
+
+    // Complaints
+    complaintLog: "Complaint Log",
+    complaintSubtitle: "Review AI analyses and escalation statuses.",
+    searchComplaints: "Search by customer, ticket, or type...",
+    exportCSV: "Export CSV",
+    all: "All",
+    pending: "Pending",
+    inProgress: "In Progress",
+    status: "Status",
+    assignAgent: "Assign agent",
+    override: "Override",
+    withinSLABadge: "Within SLA",
+    neutralSentiment: "Neutral Sentiment",
+    negativeSentiment: "Negative Sentiment",
+    positiveSentiment: "Positive Sentiment",
+
+    // Customers
+    customersTitle: "Customers",
+    searchCustomers: "Search customers...",
+    email: "Email",
+    joined: "Joined",
+    totalTickets: "Total Tickets",
+    openTickets: "Open Tickets",
+    viewProfile: "View Profile",
+    riskScore: "Risk",
+    highRisk: "High Risk",
+    mediumRisk: "Medium Risk",
+    lowRisk: "Low Risk",
+
+    // Escalations
+    escalationQueue: "Escalation Queue",
+    escalationSubtitle: "Active complaints requiring human intervention.",
+    inQueue: "In Queue",
+    avgWait: "Avg Wait",
+    criticalCount: "Critical",
+    markResolved: "Mark Resolved",
+    viewInChat: "View in Chat",
+    assignedTo: "Assigned to",
+    queueClear: "Queue is clear",
+    queueClearSub: "ResolveAI is handling everything automatically",
+    aiSummary: "AI Summary",
+    minsAgo: "mins ago",
+    hoursAgo: "hours ago",
+
+    // Portal
+    pickCompany: "Pick a company to continue",
+    portalSubtitle: "Submit a complaint, watch our AI resolve it, and track every status change in real time.",
+    submitComplaint: "Submit a complaint",
+    submitSubtitle: "Describe your issue. Our AI will classify, assess sentiment, and resolve or route it.",
+    sendComplaint: "Send",
+    liveTimeline: "Live Timeline",
+    ticketStatus: "Your Ticket Status",
+    complaintReceived: "Complaint Received",
+    aiAnalysisComplete: "AI Analysis Complete",
+    resolvedByAI: "Resolved by AI",
+    escalatedToHuman: "Escalated to Human Agent",
+    noHumanNeeded: "No human agent needed",
+    estResponse: "Est. response: 15-30 minutes",
+    submitAnother: "Submit Another Complaint",
+    copyTicket: "Copy",
+    copied: "Copied!",
+    assignedAgent: "Assigned",
+    policies: "policies",
+    platformOptional: "Platform (optional)",
+    orderIdOptional: "Order ID (optional)",
+
+    // Severity/Status badges
+    severityHigh: "HIGH",
+    severityMedium: "MEDIUM",
+    severityLow: "LOW",
+    statusResolved: "AI Resolved",
+    statusEscalated: "Escalated",
+    statusPending: "Pending",
+
+    // Common
+    live: "LIVE",
+    loading: "Loading...",
+    error: "Something went wrong",
+    retry: "Retry",
+    noData: "No data available",
+    signedInAs: "Signed in as",
+    supportLead: "Support Lead",
+    allCompanies: "All Companies",
+  },
+
+  hi: {
+    dashboard: "डैशबोर्ड",
+    chatAI: "चैट AI",
+    analyzeAI: "AI विश्लेषण",
+    complaints: "शिकायतें",
+    customers: "ग्राहक",
+    escalations: "एस्केलेशन",
+    customerPortal: "ग्राहक पोर्टल",
+    settings: "सेटिंग्स",
+    commandCenter: "कमांड सेंटर",
+    commandSubtitle: "शिकायत समाधान का रीयल-टाइम अवलोकन।",
+    totalComplaints: "आज की कुल शिकायतें",
+    aiResolved: "AI द्वारा हल",
+    escalated: "एस्केलेट",
+    avgConfidence: "औसत AI विश्वास",
+    activeVolume: "सक्रिय मात्रा",
+    resolutionRate: "समाधान दर",
+    requiresHuman: "मानव एजेंट आवश्यक",
+    acrossModels: "सभी मॉडलों में",
+    slaHealth: "SLA स्वास्थ्य",
+    activeTickets: "सक्रिय टिकट",
+    withinSLA: "SLA के भीतर",
+    approaching: "नजदीक",
+    breached: "उल्लंघन",
+    sentimentTrend: "भावना रुझान",
+    complaintsByCategory: "श्रेणी अनुसार शिकायतें",
+    activityFeed: "गतिविधि फ़ीड",
+    positive: "सकारात्मक",
+    neutral: "तटस्थ",
+    negative: "नकारात्मक",
+    chatTitle: "चैट AI",
+    chatSubtitle: "बातचीत में शिकायत दर्ज करें और रीयल-टाइम AI विश्लेषण पाएं।",
+    chatPlaceholder: "ग्राहक की शिकायत यहाँ लिखें... (Enter दबाएं भेजने के लिए)",
+    selectCustomer: "ग्राहक चुनें",
+    analyzing: "ResolveAI विश्लेषण कर रहा है...",
+    aiResolution: "AI समाधान",
+    aiConfidence: "AI विश्वास",
+    frustrationMeter: "हताशा मीटर",
+    viewFull: "पूरा देखें",
+    viewReasoning: "AI तर्क देखें",
+    policyApplied: "नीति लागू",
+    refundApproved: "रिफंड स्वीकृत",
+    escalationTriggered: "एस्केलेशन ट्रिगर",
+    calm: "शांत",
+    moderate: "मध्यम",
+    high: "उच्च",
+    critical: "गंभीर",
+    sendButton: "भेजें",
+    listeningText: "सुन रहे हैं... अपनी शिकायत बोलें",
+    voiceTooltip: "वॉइस इनपुट (Chrome अनुशंसित)",
+    confidenceBreakdown: "विश्वास विश्लेषण",
+    classificationAccuracy: "वर्गीकरण सटीकता",
+    policyMatch: "नीति मिलान",
+    historyFactor: "इतिहास कारक",
+    overallConfidence: "कुल विश्वास",
+    whyEscalated: "एस्केलेशन कारण",
+    decisionFactors: "निर्णय कारक",
+    complaintLog: "शिकायत लॉग",
+    complaintSubtitle: "AI विश्लेषण और एस्केलेशन स्थिति की समीक्षा।",
+    searchComplaints: "ग्राहक, टिकट या प्रकार खोजें...",
+    exportCSV: "CSV निर्यात",
+    all: "सभी",
+    pending: "लंबित",
+    inProgress: "प्रगति में",
+    status: "स्थिति",
+    assignAgent: "एजेंट नियुक्त करें",
+    override: "ओवरराइड",
+    withinSLABadge: "SLA के भीतर",
+    neutralSentiment: "तटस्थ भावना",
+    negativeSentiment: "नकारात्मक भावना",
+    positiveSentiment: "सकारात्मक भावना",
+    customersTitle: "ग्राहक",
+    searchCustomers: "ग्राहक खोजें...",
+    email: "ईमेल",
+    joined: "जुड़े",
+    totalTickets: "कुल टिकट",
+    openTickets: "खुले टिकट",
+    viewProfile: "प्रोफ़ाइल देखें",
+    riskScore: "जोखिम",
+    highRisk: "उच्च जोखिम",
+    mediumRisk: "मध्यम जोखिम",
+    lowRisk: "कम जोखिम",
+    escalationQueue: "एस्केलेशन कतार",
+    escalationSubtitle: "मानव हस्तक्षेप की आवश्यकता वाली शिकायतें।",
+    inQueue: "कतार में",
+    avgWait: "औसत प्रतीक्षा",
+    criticalCount: "गंभीर",
+    markResolved: "हल किया",
+    viewInChat: "चैट में देखें",
+    assignedTo: "नियुक्त",
+    queueClear: "कतार साफ है",
+    queueClearSub: "ResolveAI सब कुछ स्वचालित रूप से संभाल रहा है",
+    aiSummary: "AI सारांश",
+    minsAgo: "मिनट पहले",
+    hoursAgo: "घंटे पहले",
+    pickCompany: "जारी रखने के लिए कंपनी चुनें",
+    portalSubtitle: "शिकायत दर्ज करें, AI को हल करते देखें, और रीयल-टाइम में स्टेटस ट्रैक करें।",
+    submitComplaint: "शिकायत दर्ज करें",
+    submitSubtitle: "अपनी समस्या बताएं। AI वर्गीकृत करेगा और समाधान देगा।",
+    sendComplaint: "भेजें",
+    liveTimeline: "लाइव टाइमलाइन",
+    ticketStatus: "आपके टिकट की स्थिति",
+    complaintReceived: "शिकायत प्राप्त",
+    aiAnalysisComplete: "AI विश्लेषण पूर्ण",
+    resolvedByAI: "AI द्वारा हल",
+    escalatedToHuman: "मानव एजेंट को भेजा",
+    noHumanNeeded: "मानव एजेंट की जरूरत नहीं",
+    estResponse: "अनुमानित प्रतिक्रिया: 15-30 मिनट",
+    submitAnother: "और शिकायत दर्ज करें",
+    copyTicket: "कॉपी",
+    copied: "कॉपी हो गया!",
+    assignedAgent: "नियुक्त",
+    policies: "नीतियां",
+    platformOptional: "प्लेटफ़ॉर्म (वैकल्पिक)",
+    orderIdOptional: "ऑर्डर ID (वैकल्पिक)",
+    severityHigh: "उच्च",
+    severityMedium: "मध्यम",
+    severityLow: "निम्न",
+    statusResolved: "AI हल",
+    statusEscalated: "एस्केलेट",
+    statusPending: "लंबित",
+    live: "लाइव",
+    loading: "लोड हो रहा है...",
+    error: "कुछ गलत हुआ",
+    retry: "पुनः प्रयास",
+    noData: "डेटा उपलब्ध नहीं",
+    signedInAs: "लॉग इन:",
+    supportLead: "सपोर्ट लीड",
+    allCompanies: "सभी कंपनियां",
+  },
+
+  kn: {
+    dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    chatAI: "ಚಾಟ್ AI",
+    analyzeAI: "AI ವಿಶ್ಲೇಷಣೆ",
+    complaints: "ದೂರುಗಳು",
+    customers: "ಗ್ರಾಹಕರು",
+    escalations: "ಎಸ್ಕಲೇಶನ್",
+    customerPortal: "ಗ್ರಾಹಕ ಪೋರ್ಟಲ್",
+    settings: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    commandCenter: "ಕಮಾಂಡ್ ಸೆಂಟರ್",
+    commandSubtitle: "ದೂರು ಪರಿಹಾರ ಕಾರ್ಯಾಚರಣೆಗಳ ರಿಯಲ್-ಟೈಮ್ ಅವಲೋಕನ.",
+    totalComplaints: "ಇಂದಿನ ಒಟ್ಟು ದೂರುಗಳು",
+    aiResolved: "AI ಪರಿಹರಿಸಿದೆ",
+    escalated: "ಎಸ್ಕಲೇಟ್",
+    avgConfidence: "ಸರಾಸರಿ AI ವಿಶ್ವಾಸ",
+    activeVolume: "ಸಕ್ರಿಯ ಪ್ರಮಾಣ",
+    resolutionRate: "ಪರಿಹಾರ ದರ",
+    requiresHuman: "ಮಾನವ ಏಜೆಂಟ್ ಅಗತ್ಯ",
+    acrossModels: "ಎಲ್ಲಾ ಮಾದರಿಗಳಲ್ಲಿ",
+    slaHealth: "SLA ಆರೋಗ್ಯ",
+    activeTickets: "ಸಕ್ರಿಯ ಟಿಕೆಟ್‌ಗಳು",
+    withinSLA: "SLA ಒಳಗೆ",
+    approaching: "ಸಮೀಪಿಸುತ್ತಿದೆ",
+    breached: "ಉಲ್ಲಂಘನೆ",
+    sentimentTrend: "ಭಾವನೆ ಪ್ರವೃತ್ತಿ",
+    complaintsByCategory: "ವರ್ಗದಂತೆ ದೂರುಗಳು",
+    activityFeed: "ಚಟುವಟಿಕೆ ಫೀಡ್",
+    positive: "ಸಕಾರಾತ್ಮಕ",
+    neutral: "ತಟಸ್ಥ",
+    negative: "ನಕಾರಾತ್ಮಕ",
+    chatTitle: "ಚಾಟ್ AI",
+    chatSubtitle: "ಸಂಭಾಷಣೆಯಲ್ಲಿ ದೂರು ಸಲ್ಲಿಸಿ ಮತ್ತು ರಿಯಲ್-ಟೈಮ್ AI ವಿಶ್ಲೇಷಣೆ ಪಡೆಯಿರಿ.",
+    chatPlaceholder: "ಗ್ರಾಹಕರ ದೂರನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...",
+    selectCustomer: "ಗ್ರಾಹಕರನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    analyzing: "ResolveAI ವಿಶ್ಲೇಷಿಸುತ್ತಿದೆ...",
+    aiResolution: "AI ಪರಿಹಾರ",
+    aiConfidence: "AI ವಿಶ್ವಾಸ",
+    frustrationMeter: "ಹತಾಶೆ ಮೀಟರ್",
+    viewFull: "ಸಂಪೂರ್ಣ ನೋಡಿ",
+    viewReasoning: "AI ತರ್ಕ ನೋಡಿ",
+    policyApplied: "ನೀತಿ ಅನ್ವಯ",
+    refundApproved: "ಮರುಪಾವತಿ ಅನುಮೋದಿತ",
+    escalationTriggered: "ಎಸ್ಕಲೇಶನ್ ಪ್ರಚೋದಿತ",
+    calm: "ಶಾಂತ",
+    moderate: "ಮಧ್ಯಮ",
+    high: "ಹೆಚ್ಚು",
+    critical: "ನಿರ್ಣಾಯಕ",
+    sendButton: "ಕಳುಹಿಸಿ",
+    listeningText: "ಆಲಿಸುತ್ತಿದ್ದೇವೆ... ನಿಮ್ಮ ದೂರನ್ನು ಹೇಳಿ",
+    voiceTooltip: "ಧ್ವನಿ ಇನ್‌ಪುಟ್ (Chrome ಶಿಫಾರಸು)",
+    confidenceBreakdown: "ವಿಶ್ವಾಸ ವಿಶ್ಲೇಷಣೆ",
+    classificationAccuracy: "ವರ್ಗೀಕರಣ ನಿಖರತೆ",
+    policyMatch: "ನೀತಿ ಹೊಂದಾಣಿಕೆ",
+    historyFactor: "ಇತಿಹಾಸ ಅಂಶ",
+    overallConfidence: "ಒಟ್ಟು ವಿಶ್ವಾಸ",
+    whyEscalated: "ಎಸ್ಕಲೇಶನ್ ಕಾರಣ",
+    decisionFactors: "ನಿರ್ಧಾರ ಅಂಶಗಳು",
+    complaintLog: "ದೂರು ಲಾಗ್",
+    complaintSubtitle: "AI ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಎಸ್ಕಲೇಶನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ.",
+    searchComplaints: "ಗ್ರಾಹಕ, ಟಿಕೆಟ್ ಅಥವಾ ಪ್ರಕಾರದಿಂದ ಹುಡುಕಿ...",
+    exportCSV: "CSV ರಫ್ತು",
+    all: "ಎಲ್ಲಾ",
+    pending: "ಬಾಕಿ",
+    inProgress: "ಪ್ರಗತಿಯಲ್ಲಿ",
+    status: "ಸ್ಥಿತಿ",
+    assignAgent: "ಏಜೆಂಟ್ ನಿಯೋಜಿಸಿ",
+    override: "ಅತಿಕ್ರಮಿಸಿ",
+    withinSLABadge: "SLA ಒಳಗೆ",
+    neutralSentiment: "ತಟಸ್ಥ ಭಾವನೆ",
+    negativeSentiment: "ನಕಾರಾತ್ಮಕ ಭಾವನೆ",
+    positiveSentiment: "ಸಕಾರಾತ್ಮಕ ಭಾವನೆ",
+    customersTitle: "ಗ್ರಾಹಕರು",
+    searchCustomers: "ಗ್ರಾಹಕರನ್ನು ಹುಡುಕಿ...",
+    email: "ಇಮೇಲ್",
+    joined: "ಸೇರಿದರು",
+    totalTickets: "ಒಟ್ಟು ಟಿಕೆಟ್‌ಗಳು",
+    openTickets: "ತೆರೆದ ಟಿಕೆಟ್‌ಗಳು",
+    viewProfile: "ಪ್ರೊಫೈಲ್ ನೋಡಿ",
+    riskScore: "ಅಪಾಯ",
+    highRisk: "ಹೆಚ್ಚಿನ ಅಪಾಯ",
+    mediumRisk: "ಮಧ್ಯಮ ಅಪಾಯ",
+    lowRisk: "ಕಡಿಮೆ ಅಪಾಯ",
+    escalationQueue: "ಎಸ್ಕಲೇಶನ್ ಕ್ಯೂ",
+    escalationSubtitle: "ಮಾನವ ಹಸ್ತಕ್ಷೇಪ ಅಗತ್ಯವಿರುವ ದೂರುಗಳು.",
+    inQueue: "ಕ್ಯೂನಲ್ಲಿ",
+    avgWait: "ಸರಾಸರಿ ನಿರೀಕ್ಷೆ",
+    criticalCount: "ನಿರ್ಣಾಯಕ",
+    markResolved: "ಪರಿಹರಿಸಲಾಗಿದೆ",
+    viewInChat: "ಚಾಟ್‌ನಲ್ಲಿ ನೋಡಿ",
+    assignedTo: "ನಿಯೋಜಿತ",
+    queueClear: "ಕ್ಯೂ ಖಾಲಿ ಇದೆ",
+    queueClearSub: "ResolveAI ಎಲ್ಲವನ್ನೂ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ನಿರ್ವಹಿಸುತ್ತಿದೆ",
+    aiSummary: "AI ಸಾರಾಂಶ",
+    minsAgo: "ನಿಮಿಷಗಳ ಹಿಂದೆ",
+    hoursAgo: "ಗಂಟೆಗಳ ಹಿಂದೆ",
+    pickCompany: "ಮುಂದುವರಿಯಲು ಕಂಪನಿ ಆಯ್ಕೆಮಾಡಿ",
+    portalSubtitle: "ದೂರು ಸಲ್ಲಿಸಿ, AI ಪರಿಹರಿಸುವುದನ್ನು ನೋಡಿ.",
+    submitComplaint: "ದೂರು ಸಲ್ಲಿಸಿ",
+    submitSubtitle: "ನಿಮ್ಮ ಸಮಸ್ಯೆ ವಿವರಿಸಿ. AI ವಿಶ್ಲೇಷಿಸಿ ಪರಿಹಾರ ನೀಡುತ್ತದೆ.",
+    sendComplaint: "ಕಳುಹಿಸಿ",
+    liveTimeline: "ಲೈವ್ ಟೈಮ್‌ಲೈನ್",
+    ticketStatus: "ನಿಮ್ಮ ಟಿಕೆಟ್ ಸ್ಥಿತಿ",
+    complaintReceived: "ದೂರು ಸ್ವೀಕರಿಸಲಾಗಿದೆ",
+    aiAnalysisComplete: "AI ವಿಶ್ಲೇಷಣೆ ಪೂರ್ಣ",
+    resolvedByAI: "AI ಪರಿಹರಿಸಿದೆ",
+    escalatedToHuman: "ಮಾನವ ಏಜೆಂಟ್‌ಗೆ ರವಾನೆ",
+    noHumanNeeded: "ಮಾನವ ಏಜೆಂಟ್ ಅಗತ್ಯವಿಲ್ಲ",
+    estResponse: "ಅಂದಾಜು ಪ್ರತಿಕ್ರಿಯೆ: 15-30 ನಿಮಿಷ",
+    submitAnother: "ಮತ್ತೊಂದು ದೂರು ಸಲ್ಲಿಸಿ",
+    copyTicket: "ಕಾಪಿ",
+    copied: "ಕಾಪಿ ಆಯಿತು!",
+    assignedAgent: "ನಿಯೋಜಿತ",
+    policies: "ನೀತಿಗಳು",
+    platformOptional: "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ (ಐಚ್ಛಿಕ)",
+    orderIdOptional: "ಆರ್ಡರ್ ID (ಐಚ್ಛಿಕ)",
+    severityHigh: "ಹೆಚ್ಚು",
+    severityMedium: "ಮಧ್ಯಮ",
+    severityLow: "ಕಡಿಮೆ",
+    statusResolved: "AI ಪರಿಹರಿಸಿದೆ",
+    statusEscalated: "ಎಸ್ಕಲೇಟ್",
+    statusPending: "ಬಾಕಿ",
+    live: "ಲೈವ್",
+    loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    error: "ಏನೋ ತಪ್ಪಾಯಿತು",
+    retry: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    noData: "ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ",
+    signedInAs: "ಲಾಗಿನ್:",
+    supportLead: "ಸಪೋರ್ಟ್ ಲೀಡ್",
+    allCompanies: "ಎಲ್ಲಾ ಕಂಪನಿಗಳು",
+  },
+
+  ta: {
+    dashboard: "டாஷ்போர்டு",
+    chatAI: "சாட் AI",
+    analyzeAI: "AI பகுப்பாய்வு",
+    complaints: "புகார்கள்",
+    customers: "வாடிக்கையாளர்கள்",
+    escalations: "அதிகரிப்புகள்",
+    customerPortal: "வாடிக்கையாளர் போர்டல்",
+    settings: "அமைப்புகள்",
+    commandCenter: "கட்டளை மையம்",
+    commandSubtitle: "புகார் தீர்வு நடவடிக்கைகளின் நிகழ்நேர கண்ணோட்டம்.",
+    totalComplaints: "இன்றைய மொத்த புகார்கள்",
+    aiResolved: "AI தீர்த்தது",
+    escalated: "அதிகரிக்கப்பட்டது",
+    avgConfidence: "சராசரி AI நம்பிக்கை",
+    activeVolume: "செயலில் அளவு",
+    resolutionRate: "தீர்வு விகிதம்",
+    requiresHuman: "மனித முகவர் தேவை",
+    acrossModels: "அனைத்து மாதிரிகளிலும்",
+    slaHealth: "SLA ஆரோக்கியம்",
+    activeTickets: "செயலில் டிக்கெட்டுகள்",
+    withinSLA: "SLA க்குள்",
+    approaching: "நெருங்குகிறது",
+    breached: "மீறல்",
+    sentimentTrend: "உணர்வு போக்கு",
+    complaintsByCategory: "வகை வாரியாக புகார்கள்",
+    activityFeed: "செயல்பாடு ஊட்டம்",
+    positive: "நேர்மறை",
+    neutral: "நடுநிலை",
+    negative: "எதிர்மறை",
+    chatTitle: "சாட் AI",
+    chatSubtitle: "உரையாடலில் புகார் தெரிவித்து நிகழ்நேர AI பகுப்பாய்வு பெறுங்கள்.",
+    chatPlaceholder: "வாடிக்கையாளரின் புகாரை இங்கே எழுதுங்கள்...",
+    selectCustomer: "வாடிக்கையாளரைத் தேர்ந்தெடுக்கவும்",
+    analyzing: "ResolveAI பகுப்பாய்வு செய்கிறது...",
+    aiResolution: "AI தீர்வு",
+    aiConfidence: "AI நம்பிக்கை",
+    frustrationMeter: "விரக்தி மீட்டர்",
+    viewFull: "முழுதும் காண்க",
+    viewReasoning: "AI காரணம் காண்க",
+    policyApplied: "கொள்கை பயன்படுத்தப்பட்டது",
+    refundApproved: "திருப்பிலாபம் அனுமதிக்கப்பட்டது",
+    escalationTriggered: "அதிகரிப்பு தூண்டப்பட்டது",
+    calm: "அமைதி",
+    moderate: "மிதமான",
+    high: "அதிக",
+    critical: "மிக முக்கியமான",
+    sendButton: "அனுப்பு",
+    listeningText: "கேட்கிறோம்... உங்கள் புகாரை சொல்லுங்கள்",
+    voiceTooltip: "குரல் உள்ளீடு (Chrome பரிந்துரைக்கப்படுகிறது)",
+    confidenceBreakdown: "நம்பிக்கை பகுப்பாய்வு",
+    classificationAccuracy: "வகைப்பாடு துல்லியம்",
+    policyMatch: "கொள்கை பொருத்தம்",
+    historyFactor: "வரலாற்று காரணி",
+    overallConfidence: "மொத்த நம்பிக்கை",
+    whyEscalated: "அதிகரிப்பு காரணம்",
+    decisionFactors: "முடிவு காரணிகள்",
+    complaintLog: "புகார் பதிவு",
+    complaintSubtitle: "AI பகுப்பாய்வு மற்றும் அதிகரிப்பு நிலையை மதிப்பாய்வு செய்யுங்கள்.",
+    searchComplaints: "வாடிக்கையாளர், டிக்கெட் அல்லது வகையால் தேடுங்கள்...",
+    exportCSV: "CSV ஏற்றுமதி",
+    all: "அனைத்தும்",
+    pending: "நிலுவையில்",
+    inProgress: "செயலில்",
+    status: "நிலை",
+    assignAgent: "முகவரை நியமி",
+    override: "மேலெழுது",
+    withinSLABadge: "SLA க்குள்",
+    neutralSentiment: "நடுநிலை உணர்வு",
+    negativeSentiment: "எதிர்மறை உணர்வு",
+    positiveSentiment: "நேர்மறை உணர்வு",
+    customersTitle: "வாடிக்கையாளர்கள்",
+    searchCustomers: "வாடிக்கையாளர்களைத் தேடுங்கள்...",
+    email: "மின்னஞ்சல்",
+    joined: "சேர்ந்தார்",
+    totalTickets: "மொத்த டிக்கெட்டுகள்",
+    openTickets: "திறந்த டிக்கெட்டுகள்",
+    viewProfile: "சுயவிவரம் காண்க",
+    riskScore: "ஆபத்து",
+    highRisk: "அதிக ஆபத்து",
+    mediumRisk: "நடுத்தர ஆபத்து",
+    lowRisk: "குறைந்த ஆபத்து",
+    escalationQueue: "அதிகரிப்பு வரிசை",
+    escalationSubtitle: "மனித தலையீடு தேவைப்படும் புகார்கள்.",
+    inQueue: "வரிசையில்",
+    avgWait: "சராசரி காத்திருப்பு",
+    criticalCount: "முக்கியமான",
+    markResolved: "தீர்க்கப்பட்டது",
+    viewInChat: "சாட்டில் காண்க",
+    assignedTo: "நியமிக்கப்பட்டது",
+    queueClear: "வரிசை காலியாக உள்ளது",
+    queueClearSub: "ResolveAI தானாகவே எல்லாவற்றையும் கையாளுகிறது",
+    aiSummary: "AI சுருக்கம்",
+    minsAgo: "நிமிடங்களுக்கு முன்",
+    hoursAgo: "மணிநேரங்களுக்கு முன்",
+    pickCompany: "தொடர நிறுவனம் தேர்ந்தெடுக்கவும்",
+    portalSubtitle: "புகார் தெரிவியுங்கள், AI தீர்க்கிறதை பாருங்கள்.",
+    submitComplaint: "புகார் தெரிவிக்கவும்",
+    submitSubtitle: "உங்கள் சிக்கலை விவரிக்கவும். AI பகுப்பாய்வு செய்து தீர்வு வழங்கும்.",
+    sendComplaint: "அனுப்பு",
+    liveTimeline: "நேரடி காலவரிசை",
+    ticketStatus: "உங்கள் டிக்கெட் நிலை",
+    complaintReceived: "புகார் பெறப்பட்டது",
+    aiAnalysisComplete: "AI பகுப்பாய்வு முடிந்தது",
+    resolvedByAI: "AI தீர்த்தது",
+    escalatedToHuman: "மனித முகவருக்கு அனுப்பப்பட்டது",
+    noHumanNeeded: "மனித முகவர் தேவையில்லை",
+    estResponse: "மதிப்பிடப்பட்ட பதில்: 15-30 நிமிடங்கள்",
+    submitAnother: "மற்றொரு புகார் தெரிவிக்கவும்",
+    copyTicket: "நகலெடு",
+    copied: "நகலெடுக்கப்பட்டது!",
+    assignedAgent: "நியமிக்கப்பட்டது",
+    policies: "கொள்கைகள்",
+    platformOptional: "தளம் (விருப்பம்)",
+    orderIdOptional: "ஆர்டர் ID (விருப்பம்)",
+    severityHigh: "அதிக",
+    severityMedium: "நடுத்தர",
+    severityLow: "குறைந்த",
+    statusResolved: "AI தீர்த்தது",
+    statusEscalated: "அதிகரிக்கப்பட்டது",
+    statusPending: "நிலுவையில்",
+    live: "நேரடி",
+    loading: "ஏற்றுகிறது...",
+    error: "ஏதோ தவறு நடந்தது",
+    retry: "மீண்டும் முயற்சி",
+    noData: "தரவு இல்லை",
+    signedInAs: "உள்நுழைந்தவர்:",
+    supportLead: "ஆதரவு தலைவர்",
+    allCompanies: "அனைத்து நிறுவனங்களும்",
+  },
+
+  te: {
+    dashboard: "డాష్‌బోర్డ్",
+    chatAI: "చాట్ AI",
+    analyzeAI: "AI విశ్లేషణ",
+    complaints: "ఫిర్యాదులు",
+    customers: "కస్టమర్లు",
+    escalations: "ఎస్కలేషన్లు",
+    customerPortal: "కస్టమర్ పోర్టల్",
+    settings: "సెట్టింగ్లు",
+    commandCenter: "కమాండ్ సెంటర్",
+    commandSubtitle: "ఫిర్యాదు పరిష్కార కార్యకలాపాల రియల్-టైమ్ అవలోకనం.",
+    totalComplaints: "నేటి మొత్తం ఫిర్యాదులు",
+    aiResolved: "AI పరిష్కరించింది",
+    escalated: "ఎస్కలేట్",
+    avgConfidence: "సగటు AI నమ్మకం",
+    activeVolume: "క్రియాశీల వాల్యూమ్",
+    resolutionRate: "పరిష్కార రేటు",
+    requiresHuman: "మానవ ఏజెంట్ అవసరం",
+    acrossModels: "అన్ని నమూనాలలో",
+    slaHealth: "SLA ఆరోగ్యం",
+    activeTickets: "క్రియాశీల టికెట్లు",
+    withinSLA: "SLA లోపల",
+    approaching: "సమీపిస్తోంది",
+    breached: "ఉల్లంఘన",
+    sentimentTrend: "సెంటిమెంట్ ట్రెండ్",
+    complaintsByCategory: "వర్గం వారీగా ఫిర్యాదులు",
+    activityFeed: "కార్యాచరణ ఫీడ్",
+    positive: "సానుకూల",
+    neutral: "తటస్థ",
+    negative: "ప్రతికూల",
+    chatTitle: "చాట్ AI",
+    chatSubtitle: "సంభాషణలో ఫిర్యాదు సమర్పించి రియల్-టైమ్ AI విశ్లేషణ పొందండి.",
+    chatPlaceholder: "కస్టమర్ ఫిర్యాదును ఇక్కడ రాయండి...",
+    selectCustomer: "కస్టమర్‌ని ఎంచుకోండి",
+    analyzing: "ResolveAI విశ్లేషిస్తోంది...",
+    aiResolution: "AI పరిష్కారం",
+    aiConfidence: "AI నమ్మకం",
+    frustrationMeter: "నిరాశ మీటర్",
+    viewFull: "పూర్తిగా చూడండి",
+    viewReasoning: "AI తర్కం చూడండి",
+    policyApplied: "పాలసీ వర్తింపు",
+    refundApproved: "రీఫండ్ ఆమోదించబడింది",
+    escalationTriggered: "ఎస్కలేషన్ ట్రిగ్గర్",
+    calm: "శాంతంగా",
+    moderate: "మధ్యస్థంగా",
+    high: "అధికంగా",
+    critical: "క్లిష్టమైన",
+    sendButton: "పంపండి",
+    listeningText: "వింటున్నాం... మీ ఫిర్యాదు చెప్పండి",
+    voiceTooltip: "వాయిస్ ఇన్‌పుట్ (Chrome సిఫారసు)",
+    confidenceBreakdown: "నమ్మకం విశ్లేషణ",
+    classificationAccuracy: "వర్గీకరణ ఖచ్చితత్వం",
+    policyMatch: "పాలసీ సరిపోలిక",
+    historyFactor: "చరిత్ర కారకం",
+    overallConfidence: "మొత్తం నమ్మకం",
+    whyEscalated: "ఎస్కలేషన్ కారణం",
+    decisionFactors: "నిర్ణయ కారకాలు",
+    complaintLog: "ఫిర్యాదు లాగ్",
+    complaintSubtitle: "AI విశ్లేషణ మరియు ఎస్కలేషన్ స్థితిని సమీక్షించండి.",
+    searchComplaints: "కస్టమర్, టికెట్ లేదా రకం వారీగా వెతకండి...",
+    exportCSV: "CSV ఎగుమతి",
+    all: "అన్నీ",
+    pending: "పెండింగ్",
+    inProgress: "ప్రగతిలో",
+    status: "స్థితి",
+    assignAgent: "ఏజెంట్‌ని నియమించండి",
+    override: "ఓవర్‌రైడ్",
+    withinSLABadge: "SLA లోపల",
+    neutralSentiment: "తటస్థ సెంటిమెంట్",
+    negativeSentiment: "ప్రతికూల సెంటిమెంట్",
+    positiveSentiment: "సానుకూల సెంటిమెంట్",
+    customersTitle: "కస్టమర్లు",
+    searchCustomers: "కస్టమర్లను వెతకండి...",
+    email: "ఇమెయిల్",
+    joined: "చేరారు",
+    totalTickets: "మొత్తం టికెట్లు",
+    openTickets: "తెరిచిన టికెట్లు",
+    viewProfile: "ప్రొఫైల్ చూడండి",
+    riskScore: "రిస్క్",
+    highRisk: "అధిక రిస్క్",
+    mediumRisk: "మధ్యస్థ రిస్క్",
+    lowRisk: "తక్కువ రిస్క్",
+    escalationQueue: "ఎస్కలేషన్ క్యూ",
+    escalationSubtitle: "మానవ జోక్యం అవసరమయ్యే ఫిర్యాదులు.",
+    inQueue: "క్యూలో",
+    avgWait: "సగటు వేచి",
+    criticalCount: "క్లిష్టమైన",
+    markResolved: "పరిష్కరించబడింది",
+    viewInChat: "చాట్‌లో చూడండి",
+    assignedTo: "నియమించబడింది",
+    queueClear: "క్యూ ఖాళీగా ఉంది",
+    queueClearSub: "ResolveAI అన్నింటినీ స్వయంచాలకంగా నిర్వహిస్తోంది",
+    aiSummary: "AI సారాంశం",
+    minsAgo: "నిమిషాల క్రితం",
+    hoursAgo: "గంటల క్రితం",
+    pickCompany: "కొనసాగించడానికి కంపెనీ ఎంచుకోండి",
+    portalSubtitle: "ఫిర్యాదు సమర్పించండి, AI పరిష్కరించడాన్ని చూడండి.",
+    submitComplaint: "ఫిర్యాదు సమర్పించండి",
+    submitSubtitle: "మీ సమస్య వివరించండి. AI విశ్లేషించి పరిష్కారం అందిస్తుంది.",
+    sendComplaint: "పంపండి",
+    liveTimeline: "లైవ్ టైమ్‌లైన్",
+    ticketStatus: "మీ టికెట్ స్థితి",
+    complaintReceived: "ఫిర్యాదు స్వీకరించబడింది",
+    aiAnalysisComplete: "AI విశ్లేషణ పూర్తయింది",
+    resolvedByAI: "AI పరిష్కరించింది",
+    escalatedToHuman: "మానవ ఏజెంట్‌కు పంపబడింది",
+    noHumanNeeded: "మానవ ఏజెంట్ అవసరం లేదు",
+    estResponse: "అంచనా ప్రతిస్పందన: 15-30 నిమిషాలు",
+    submitAnother: "మరో ఫిర్యాదు సమర్పించండి",
+    copyTicket: "కాపీ",
+    copied: "కాపీ అయింది!",
+    assignedAgent: "నియమించబడింది",
+    policies: "విధానాలు",
+    platformOptional: "ప్లాట్‌ఫారమ్ (ఐచ్ఛికం)",
+    orderIdOptional: "ఆర్డర్ ID (ఐచ్ఛికం)",
+    severityHigh: "అధిక",
+    severityMedium: "మధ్యస్థ",
+    severityLow: "తక్కువ",
+    statusResolved: "AI పరిష్కరించింది",
+    statusEscalated: "ఎస్కలేట్",
+    statusPending: "పెండింగ్",
+    live: "లైవ్",
+    loading: "లోడ్ అవుతోంది...",
+    error: "ఏదో తప్పు జరిగింది",
+    retry: "మళ్ళీ ప్రయత్నించండి",
+    noData: "డేటా అందుబాటులో లేదు",
+    signedInAs: "లాగిన్:",
+    supportLead: "సపోర్ట్ లీడ్",
+    allCompanies: "అన్ని కంపెనీలు",
+  },
+
+  es: {
+    dashboard: "Panel de control",
+    chatAI: "Chat IA",
+    analyzeAI: "Analizar IA",
+    complaints: "Quejas",
+    customers: "Clientes",
+    escalations: "Escalaciones",
+    customerPortal: "Portal del cliente",
+    settings: "Configuración",
+    commandCenter: "Centro de mando",
+    commandSubtitle: "Resumen en tiempo real de las operaciones de resolución.",
+    totalComplaints: "Total de quejas hoy",
+    aiResolved: "Resuelto por IA",
+    escalated: "Escalado",
+    avgConfidence: "Confianza promedio IA",
+    activeVolume: "Volumen activo",
+    resolutionRate: "Tasa de resolución",
+    requiresHuman: "Requiere agente humano",
+    acrossModels: "En todos los modelos",
+    slaHealth: "Salud SLA",
+    activeTickets: "tickets activos",
+    withinSLA: "Dentro del SLA",
+    approaching: "Aproximándose",
+    breached: "Incumplido",
+    sentimentTrend: "Tendencia de sentimiento",
+    complaintsByCategory: "Quejas por categoría",
+    activityFeed: "Feed de actividad",
+    positive: "positivo",
+    neutral: "neutral",
+    negative: "negativo",
+    chatTitle: "Chat IA",
+    chatSubtitle: "Envíe quejas conversacionalmente y obtenga análisis de IA en tiempo real.",
+    chatPlaceholder: "Describa la queja del cliente... (Enter para enviar)",
+    selectCustomer: "Seleccionar cliente",
+    analyzing: "ResolveAI está analizando...",
+    aiResolution: "Resolución IA",
+    aiConfidence: "Confianza IA",
+    frustrationMeter: "Medidor de frustración",
+    viewFull: "Ver completo",
+    viewReasoning: "Ver razonamiento IA",
+    policyApplied: "Política aplicada",
+    refundApproved: "Reembolso aprobado",
+    escalationTriggered: "Escalación activada",
+    calm: "Calmado",
+    moderate: "Moderado",
+    high: "Alto",
+    critical: "Crítico",
+    sendButton: "Enviar",
+    listeningText: "Escuchando... diga su queja",
+    voiceTooltip: "Entrada de voz (Chrome recomendado)",
+    confidenceBreakdown: "Desglose de confianza",
+    classificationAccuracy: "Precisión de clasificación",
+    policyMatch: "Coincidencia de política",
+    historyFactor: "Factor de historial",
+    overallConfidence: "Confianza general",
+    whyEscalated: "Por qué se escaló",
+    decisionFactors: "Factores de decisión",
+    complaintLog: "Registro de quejas",
+    complaintSubtitle: "Revise los análisis de IA y los estados de escalación.",
+    searchComplaints: "Buscar por cliente, ticket o tipo...",
+    exportCSV: "Exportar CSV",
+    all: "Todos",
+    pending: "Pendiente",
+    inProgress: "En progreso",
+    status: "Estado",
+    assignAgent: "Asignar agente",
+    override: "Anular",
+    withinSLABadge: "Dentro del SLA",
+    neutralSentiment: "Sentimiento neutral",
+    negativeSentiment: "Sentimiento negativo",
+    positiveSentiment: "Sentimiento positivo",
+    customersTitle: "Clientes",
+    searchCustomers: "Buscar clientes...",
+    email: "Correo electrónico",
+    joined: "Se unió",
+    totalTickets: "Total de tickets",
+    openTickets: "Tickets abiertos",
+    viewProfile: "Ver perfil",
+    riskScore: "Riesgo",
+    highRisk: "Alto riesgo",
+    mediumRisk: "Riesgo medio",
+    lowRisk: "Bajo riesgo",
+    escalationQueue: "Cola de escalación",
+    escalationSubtitle: "Quejas que requieren intervención humana.",
+    inQueue: "En cola",
+    avgWait: "Espera promedio",
+    criticalCount: "Crítico",
+    markResolved: "Marcar resuelto",
+    viewInChat: "Ver en chat",
+    assignedTo: "Asignado a",
+    queueClear: "Cola despejada",
+    queueClearSub: "ResolveAI maneja todo automáticamente",
+    aiSummary: "Resumen IA",
+    minsAgo: "minutos atrás",
+    hoursAgo: "horas atrás",
+    pickCompany: "Elige una empresa para continuar",
+    portalSubtitle: "Envíe una queja, observe cómo la IA la resuelve y realice un seguimiento en tiempo real.",
+    submitComplaint: "Enviar una queja",
+    submitSubtitle: "Describa su problema. Nuestra IA lo clasificará y resolverá.",
+    sendComplaint: "Enviar",
+    liveTimeline: "Línea de tiempo en vivo",
+    ticketStatus: "Estado de su ticket",
+    complaintReceived: "Queja recibida",
+    aiAnalysisComplete: "Análisis IA completo",
+    resolvedByAI: "Resuelto por IA",
+    escalatedToHuman: "Escalado a agente humano",
+    noHumanNeeded: "No se necesita agente humano",
+    estResponse: "Respuesta estimada: 15-30 minutos",
+    submitAnother: "Enviar otra queja",
+    copyTicket: "Copiar",
+    copied: "¡Copiado!",
+    assignedAgent: "Asignado",
+    policies: "políticas",
+    platformOptional: "Plataforma (opcional)",
+    orderIdOptional: "ID de pedido (opcional)",
+    severityHigh: "ALTO",
+    severityMedium: "MEDIO",
+    severityLow: "BAJO",
+    statusResolved: "Resuelto por IA",
+    statusEscalated: "Escalado",
+    statusPending: "Pendiente",
+    live: "EN VIVO",
+    loading: "Cargando...",
+    error: "Algo salió mal",
+    retry: "Reintentar",
+    noData: "No hay datos disponibles",
+    signedInAs: "Sesión iniciada como",
+    supportLead: "Líder de soporte",
+    allCompanies: "Todas las empresas",
+  },
+
+  fr: {
+    dashboard: "Tableau de bord",
+    chatAI: "Chat IA",
+    analyzeAI: "Analyser IA",
+    complaints: "Réclamations",
+    customers: "Clients",
+    escalations: "Escalades",
+    customerPortal: "Portail client",
+    settings: "Paramètres",
+    commandCenter: "Centre de commande",
+    commandSubtitle: "Vue d'ensemble en temps réel des opérations de résolution.",
+    totalComplaints: "Total des réclamations aujourd'hui",
+    aiResolved: "Résolu par IA",
+    escalated: "Escaladé",
+    avgConfidence: "Confiance IA moyenne",
+    activeVolume: "Volume actif",
+    resolutionRate: "Taux de résolution",
+    requiresHuman: "Agent humain requis",
+    acrossModels: "Sur tous les modèles",
+    slaHealth: "Santé SLA",
+    activeTickets: "tickets actifs",
+    withinSLA: "Dans le SLA",
+    approaching: "Approchant",
+    breached: "Dépassé",
+    sentimentTrend: "Tendance du sentiment",
+    complaintsByCategory: "Réclamations par catégorie",
+    activityFeed: "Fil d'activité",
+    positive: "positif",
+    neutral: "neutre",
+    negative: "négatif",
+    chatTitle: "Chat IA",
+    chatSubtitle: "Soumettez des réclamations et obtenez une analyse IA en temps réel.",
+    chatPlaceholder: "Décrivez la réclamation du client... (Entrée pour envoyer)",
+    selectCustomer: "Sélectionner un client",
+    analyzing: "ResolveAI analyse...",
+    aiResolution: "Résolution IA",
+    aiConfidence: "Confiance IA",
+    frustrationMeter: "Indicateur de frustration",
+    viewFull: "Voir complet",
+    viewReasoning: "Voir le raisonnement IA",
+    policyApplied: "Politique appliquée",
+    refundApproved: "Remboursement approuvé",
+    escalationTriggered: "Escalade déclenchée",
+    calm: "Calme",
+    moderate: "Modéré",
+    high: "Élevé",
+    critical: "Critique",
+    sendButton: "Envoyer",
+    listeningText: "À l'écoute... dites votre réclamation",
+    voiceTooltip: "Saisie vocale (Chrome recommandé)",
+    confidenceBreakdown: "Décomposition de confiance",
+    classificationAccuracy: "Précision de classification",
+    policyMatch: "Correspondance de politique",
+    historyFactor: "Facteur historique",
+    overallConfidence: "Confiance globale",
+    whyEscalated: "Raison de l'escalade",
+    decisionFactors: "Facteurs de décision",
+    complaintLog: "Journal des réclamations",
+    complaintSubtitle: "Examinez les analyses IA et les statuts d'escalade.",
+    searchComplaints: "Rechercher par client, ticket ou type...",
+    exportCSV: "Exporter CSV",
+    all: "Tous",
+    pending: "En attente",
+    inProgress: "En cours",
+    status: "Statut",
+    assignAgent: "Attribuer un agent",
+    override: "Remplacer",
+    withinSLABadge: "Dans le SLA",
+    neutralSentiment: "Sentiment neutre",
+    negativeSentiment: "Sentiment négatif",
+    positiveSentiment: "Sentiment positif",
+    customersTitle: "Clients",
+    searchCustomers: "Rechercher des clients...",
+    email: "E-mail",
+    joined: "Rejoint",
+    totalTickets: "Total des tickets",
+    openTickets: "Tickets ouverts",
+    viewProfile: "Voir le profil",
+    riskScore: "Risque",
+    highRisk: "Risque élevé",
+    mediumRisk: "Risque moyen",
+    lowRisk: "Faible risque",
+    escalationQueue: "File d'escalade",
+    escalationSubtitle: "Réclamations nécessitant une intervention humaine.",
+    inQueue: "En file",
+    avgWait: "Attente moyenne",
+    criticalCount: "Critique",
+    markResolved: "Marquer résolu",
+    viewInChat: "Voir dans le chat",
+    assignedTo: "Assigné à",
+    queueClear: "File vide",
+    queueClearSub: "ResolveAI gère tout automatiquement",
+    aiSummary: "Résumé IA",
+    minsAgo: "minutes auparavant",
+    hoursAgo: "heures auparavant",
+    pickCompany: "Choisissez une entreprise pour continuer",
+    portalSubtitle: "Soumettez une réclamation, regardez l'IA la résoudre en temps réel.",
+    submitComplaint: "Soumettre une réclamation",
+    submitSubtitle: "Décrivez votre problème. Notre IA le classifiera et le résoudra.",
+    sendComplaint: "Envoyer",
+    liveTimeline: "Chronologie en direct",
+    ticketStatus: "Statut de votre ticket",
+    complaintReceived: "Réclamation reçue",
+    aiAnalysisComplete: "Analyse IA terminée",
+    resolvedByAI: "Résolu par IA",
+    escalatedToHuman: "Escaladé vers un agent humain",
+    noHumanNeeded: "Aucun agent humain nécessaire",
+    estResponse: "Réponse estimée : 15-30 minutes",
+    submitAnother: "Soumettre une autre réclamation",
+    copyTicket: "Copier",
+    copied: "Copié !",
+    assignedAgent: "Assigné",
+    policies: "politiques",
+    platformOptional: "Plateforme (facultatif)",
+    orderIdOptional: "ID de commande (facultatif)",
+    severityHigh: "ÉLEVÉ",
+    severityMedium: "MOYEN",
+    severityLow: "BAS",
+    statusResolved: "Résolu par IA",
+    statusEscalated: "Escaladé",
+    statusPending: "En attente",
+    live: "EN DIRECT",
+    loading: "Chargement...",
+    error: "Une erreur s'est produite",
+    retry: "Réessayer",
+    noData: "Aucune donnée disponible",
+    signedInAs: "Connecté en tant que",
+    supportLead: "Responsable support",
+    allCompanies: "Toutes les entreprises",
+  }
+}
+
+export type Language = keyof typeof translations
+export type TranslationKey = keyof typeof translations.en
+
+export const useTranslation = (lang: Language) => {
+  const t = (key: TranslationKey): string => {
+    return translations[lang]?.[key] || translations.en[key] || key
+  }
+  return { t }
+}
+
+════════════════════════════════════════════════
+PART 2: LANGUAGE CONTEXT — GLOBAL STATE
+════════════════════════════════════════════════
+
+Create /lib/LanguageContext.tsx:
+
+import React, { createContext, useContext, 
+  useState, useEffect } from 'react'
+import { translations, Language } from './translations'
+
+interface LanguageContextType {
+  language: Language
+  setLanguage: (lang: Language) => void
+  t: (key: string) => string
+}
+
+const LanguageContext = createContext
+  LanguageContextType>({
+  language: 'en',
+  setLanguage: () => {},
+  t: (key) => key
+})
+
+export const LanguageProvider = ({ children }) => {
+  const [language, setLanguageState] = 
+    useState<Language>('en')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('resolveai-lang')
+    if (saved && translations[saved as Language]) {
+      setLanguageState(saved as Language)
+    }
+  }, [])
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang)
+    localStorage.setItem('resolveai-lang', lang)
+  }
+
+  const t = (key: string): string => {
+    const langData = translations[language]
+    const enData = translations.en
+    return langData?.[key] || enData?.[key] || key
+  }
+
+  return (
+    <LanguageContext.Provider 
+      value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  )
+}
+
+export const useLanguage = () => 
+  useContext(LanguageContext)
+
+Wrap root layout with LanguageProvider:
+In /app/layout.tsx:
+<LanguageProvider>
+  {children}
+</LanguageProvider>
+
+════════════════════════════════════════════════
+PART 3: CONNECT TRANSLATIONS TO ALL PAGES
+════════════════════════════════════════════════
+
+In EVERY page and component, replace 
+all hardcoded English strings:
+
+Import at top of each file:
+import { useLanguage } from '@/lib/LanguageContext'
+
+Inside component:
+const { t, language } = useLanguage()
+
+Replace every hardcoded string:
+BEFORE: <h1>Command Center</h1>
+AFTER:  <h1>{t('commandCenter')}</h1>
+
+BEFORE: <p>Real-time overview...</p>
+AFTER:  <p>{t('commandSubtitle')}</p>
+
+BEFORE: placeholder="Describe the complaint..."
+AFTER:  placeholder={t('chatPlaceholder')}
+
+Apply to ALL of these files:
+- app/dashboard/page.tsx (or .jsx)
+- app/chat/page.tsx
+- app/analyze/page.tsx
+- app/complaints/page.tsx
+- app/customers/page.tsx
+- app/escalations/page.tsx
+- app/portal/page.tsx
+- components/Sidebar.tsx (nav items)
+- components/Header.tsx
+- Any other component with visible text
+
+════════════════════════════════════════════════
+PART 4: LANGUAGE SELECTOR — UPDATE EXISTING
+════════════════════════════════════════════════
+
+Find the existing language selector in Header.
+Update it to use LanguageContext:
+
+import { useLanguage } from '@/lib/LanguageContext'
+
+const LANGUAGES = [
+  { code: 'en', label: 'English', flag: '🇬🇧', short: 'EN' },
+  { code: 'hi', label: 'हिन्दी', flag: '🇮🇳', short: 'HI' },
+  { code: 'kn', label: 'ಕನ್ನಡ', flag: '🇮🇳', short: 'KN' },
+  { code: 'ta', label: 'தமிழ்', flag: '🇮🇳', short: 'TA' },
+  { code: 'te', label: 'తెలుగు', flag: '🇮🇳', short: 'TE' },
+  { code: 'es', label: 'Español', flag: '🇪🇸', short: 'ES' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷', short: 'FR' },
+]
+
+const { language, setLanguage } = useLanguage()
+
+When language changes:
+1. setLanguage(newLang) saves to localStorage
+2. All components re-render with new language
+3. Header shows: {flag} {short} 
+   e.g. "🇮🇳 KN" when Kannada selected
+4. Dropdown shows all 7 options with 
+   checkmark on current selection
+
+════════════════════════════════════════════════
+PART 5: MULTILINGUAL VOICE INPUT
+════════════════════════════════════════════════
+
+Update voice input to use selected language:
+
+Find the voice input / mic button component.
+Replace hardcoded 'en-IN' with dynamic lang:
+
+const VOICE_LANG_MAP = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  kn: 'kn-IN',
+  ta: 'ta-IN',
+  te: 'te-IN',
+  es: 'es-ES',
+  fr: 'fr-FR'
+}
+
+const { language, t } = useLanguage()
+
+const startVoiceInput = () => {
+  const SpeechRecognition = 
+    window.SpeechRecognition || 
+    window.webkitSpeechRecognition
+
+  if (!SpeechRecognition) {
+    showToast(
+      language === 'hi' 
+        ? 'Chrome ब्राउज़र आवश्यक है'
+        : language === 'kn'
+        ? 'Chrome ಬ್ರೌಸರ್ ಅಗತ್ಯ'
+        : 'Voice input requires Chrome',
+      'error'
+    )
+    return
+  }
+
+  const recognition = new SpeechRecognition()
+  recognition.continuous = false
+  recognition.interimResults = true
+  recognition.lang = VOICE_LANG_MAP[language] || 'en-IN'
+  recognition.maxAlternatives = 1
+
+  setIsListening(true)
+
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results)
+      .map(result => result[0].transcript)
+      .join('')
+    setInputValue(transcript)
+  }
+
+  recognition.onspeechend = () => {
+    recognition.stop()
+  }
+
+  recognition.onend = () => {
+    setIsListening(false)
+  }
+
+  recognition.onerror = (event) => {
+    setIsListening(false)
+    const errorMessages = {
+      'no-speech': {
+        en: 'No speech detected. Please try again.',
+        hi: 'आवाज़ नहीं सुनाई दी। कृपया पुनः प्रयास करें।',
+        kn: 'ಮಾತು ಕೇಳಿಸಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
+        ta: 'பேச்சு கேட்கவில்லை. மீண்டும் முயற்சிக்கவும்.',
+        te: 'మాట వినిపించలేదు. మళ్ళీ ప్రయత్నించండి.',
+        es: 'No se detectó voz. Por favor intente de nuevo.',
+        fr: 'Aucune voix détectée. Veuillez réessayer.'
+      },
+      'network': {
+        en: 'Network error. Check your connection.',
+        hi: 'नेटवर्क त्रुटि। कनेक्शन जांचें।',
+        kn: 'ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ.',
+        ta: 'நெட்வொர்க் பிழை. இணைப்பை சரிபார்க்கவும்.',
+        te: 'నెట్‌వర్క్ లోపం. కనెక్షన్ తనిఖీ చేయండి.',
+        es: 'Error de red. Verifique su conexión.',
+        fr: 'Erreur réseau. Vérifiez votre connexion.'
+      }
+    }
+    const msg = errorMessages[event.error]?.[language] 
+      || errorMessages[event.error]?.en 
+      || t('error')
+    showToast(msg, 'error')
+  }
+
+  recognition.start()
+}
+
+Listening state banner text:
+Use t('listeningText') which is now 
+translated for each language.
+
+Mic button tooltip:
+Use t('voiceTooltip')
+
+════════════════════════════════════════════════
+PART 6: AI RESPONSE IN SELECTED LANGUAGE
+════════════════════════════════════════════════
+
+This is the most important part.
+When AI responds, the resolution text must 
+be in the selected language.
+
+Update the /analyze API call to include 
+language in the request:
+
+In api.ts or wherever fetch is called:
+const { language } = useLanguage()
+
+const response = await fetch('/api/analyze', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    complaint: inputValue,
+    customer_id: selectedCustomer,
+    language: language
+  })
+})
+
+On the backend (main.py), update 
+the analyze endpoint:
+
+class AnalyzeRequest(BaseModel):
+    complaint: str
+    customer_id: Optional[str] = "CUST001"
+    language: Optional[str] = "en"
+
+RESOLUTION TRANSLATION using a 
+pre-built translation map for 
+policy resolution templates:
+
+RESOLUTION_TEMPLATES = {
+  "refund": {
+    "en": "Your refund request has been accepted and will be credited within 5-7 business days. You will receive a confirmation email shortly.",
+    "hi": "आपका रिफंड अनुरोध स्वीकार कर लिया गया है और 5-7 कार्य दिवसों के भीतर क्रेडिट किया जाएगा। आपको जल्द ही एक पुष्टिकरण ईमेल मिलेगा।",
+    "kn": "ನಿಮ್ಮ ಮರುಪಾವತಿ ವಿನಂತಿಯನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ ಮತ್ತು 5-7 ಕಾರ್ಯ ದಿನಗಳಲ್ಲಿ ಜಮಾ ಮಾಡಲಾಗುವುದು.",
+    "ta": "உங்கள் திருப்பிலாப கோரிக்கை ஏற்றுக்கொள்ளப்பட்டது, 5-7 வணிக நாட்களில் வரவு வைக்கப்படும்.",
+    "te": "మీ రీఫండ్ అభ్యర్థన ఆమోదించబడింది మరియు 5-7 వ్యాపార రోజులలో క్రెడిట్ చేయబడుతుంది.",
+    "es": "Su solicitud de reembolso ha sido aceptada y se acreditará en un plazo de 5-7 días hábiles.",
+    "fr": "Votre demande de remboursement a été acceptée et sera créditée sous 5 à 7 jours ouvrables."
+  },
+  "billing": {
+    "en": "We have verified your billing concern. The overcharged amount will be refunded within 3-5 business days to your original payment method.",
+    "hi": "हमने आपकी बिलिंग समस्या की जांच की है। अतिरिक्त चार्ज की गई राशि 3-5 कार्य दिवसों में वापस कर दी जाएगी।",
+    "kn": "ನಿಮ್ಮ ಬಿಲ್ಲಿಂಗ್ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ಹೆಚ್ಚುವರಿ ಶುಲ್ಕವನ್ನು 3-5 ದಿನಗಳಲ್ಲಿ ವಾಪಸ್ ಮಾಡಲಾಗುವುದು.",
+    "ta": "உங்கள் பில்லிங் கவலையை சரிபார்த்தோம். அதிகமாக வசூலிக்கப்பட்ட தொகை 3-5 நாட்களில் திருப்பி அனுப்பப்படும்.",
+    "te": "మీ బిల్లింగ్ సమస్యను ధృవీకరించాం. అదనంగా వసూలు చేసిన మొత్తాన్ని 3-5 రోజులలో తిరిగి చెల్లిస్తాం.",
+    "es": "Hemos verificado su problema de facturación. El monto cobrado de más será reembolsado en 3-5 días hábiles.",
+    "fr": "Nous avons vérifié votre problème de facturation. Le montant trop perçu sera remboursé sous 3 à 5 jours ouvrables."
+  },
+  "technical": {
+    "en": "We have logged a high-priority technical ticket. Our engineering team will resolve this within 24 hours and notify you via email.",
+    "hi": "हमने एक उच्च-प्राथमिकता तकनीकी टिकट दर्ज किया है। हमारी टीम 24 घंटों में इसे हल करेगी।",
+    "kn": "ತಾಂತ್ರಿಕ ಟಿಕೆಟ್ ದಾಖಲಿಸಲಾಗಿದೆ. ನಮ್ಮ ತಂಡ 24 ಗಂಟೆಗಳಲ್ಲಿ ಪರಿಹರಿಸುತ್ತದೆ.",
+    "ta": "தொழில்நுட்ப டிக்கெட் பதிவு செய்யப்பட்டது. 24 மணி நேரத்தில் தீர்க்கப்படும்.",
+    "te": "సాంకేతిక టికెట్ నమోదు చేయబడింది. మా టీమ్ 24 గంటలలో పరిష్కరిస్తుంది.",
+    "es": "Hemos registrado un ticket técnico de alta prioridad. Nuestro equipo lo resolverá en 24 horas.",
+    "fr": "Nous avons enregistré un ticket technique haute priorité. Notre équipe le résoudra dans les 24 heures."
+  },
+  "delivery": {
+    "en": "We have flagged your delivery concern with our logistics partner. You will receive an update within 24 hours.",
+    "hi": "हमने आपकी डिलीवरी समस्या लॉजिस्टिक्स पार्टनर को भेज दी है। 24 घंटों में अपडेट मिलेगा।",
+    "kn": "ನಿಮ್ಮ ಡೆಲಿವರಿ ಸಮಸ್ಯೆಯನ್ನು ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪಾರ್ಟ್ನರ್‌ಗೆ ತಿಳಿಸಲಾಗಿದೆ. 24 ಗಂಟೆಗಳಲ್ಲಿ ಅಪ್ಡೇಟ್ ಬರುತ್ತದೆ.",
+    "ta": "டெலிவரி பிரச்சனை லாஜிஸ்டிக்ஸ் பார்ட்னருக்கு தெரிவிக்கப்பட்டது. 24 மணி நேரத்தில் புதுப்பிப்பு கிடைக்கும்.",
+    "te": "మీ డెలివరీ సమస్యను లాజిస్టిక్స్ పార్టనర్‌కు తెలియజేశాం. 24 గంటలలో అప్‌డేట్ వస్తుంది.",
+    "es": "Hemos notificado a nuestro socio logístico sobre su problema de entrega. Recibirá una actualización en 24 horas.",
+    "fr": "Nous avons signalé votre problème de livraison à notre partenaire logistique. Vous recevrez une mise à jour dans 24 heures."
+  },
+  "account": {
+    "en": "We have initiated a secure account recovery process. A verification link has been sent to your registered email.",
+    "hi": "सुरक्षित खाता पुनर्प्राप्ति प्रक्रिया शुरू की गई है। आपके ईमेल पर एक वेरिफिकेशन लिंक भेजा गया है।",
+    "kn": "ಸುರಕ್ಷಿತ ಖಾತೆ ಚೇತರಿಕೆ ಪ್ರಕ್ರಿಯೆ ಆರಂಭಿಸಲಾಗಿದೆ. ಇಮೇಲ್‌ಗೆ ಪರಿಶೀಲನೆ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ.",
+    "ta": "கணக்கு மீட்பு செயல்முறை தொடங்கப்பட்டது. உங்கள் மின்னஞ்சலுக்கு சரிபார்ப்பு இணைப்பு அனுப்பப்பட்டது.",
+    "te": "సురక్షిత ఖాతా రికవరీ ప్రక్రియ ప్రారంభించబడింది. మీ ఇమెయిల్‌కు వెరిఫికేషన్ లింక్ పంపబడింది.",
+    "es": "Hemos iniciado un proceso seguro de recuperación de cuenta. Se ha enviado un enlace de verificación a su correo.",
+    "fr": "Nous avons lancé un processus sécurisé de récupération de compte. Un lien de vérification a été envoyé à votre e-mail."
+  },
+  "general": {
+    "en": "Thank you for reaching out. Your concern has been noted and will be reviewed by our team within 24 hours.",
+    "hi": "हमसे संपर्क करने के लिए धन्यवाद। आपकी समस्या 24 घंटों में समीक्षा की जाएगी।",
+    "kn": "ಸಂಪರ್ಕಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದ. 24 ಗಂಟೆಗಳಲ್ಲಿ ಪರಿಶೀಲಿಸಲಾಗುವುದು.",
+    "ta": "தொடர்பு கொண்டதற்கு நன்றி. 24 மணி நேரத்தில் மதிப்பாய்வு செய்யப்படும்.",
+    "te": "సంప్రదించినందుకు ధన్యవాదాలు. 24 గంటలలో సమీక్షించబడుతుంది.",
+    "es": "Gracias por comunicarse. Su preocupación será revisada en 24 horas.",
+    "fr": "Merci de nous avoir contactés. Votre préoccupation sera examinée dans les 24 heures."
+  }
+}
+
+In the analyze endpoint, use language 
+to pick correct resolution template:
+
+complaint_type = classification_result['complaint_type']
+lang = request.language or 'en'
+
+resolution = RESOLUTION_TEMPLATES.get(
+    complaint_type, RESOLUTION_TEMPLATES['general']
+).get(lang, RESOLUTION_TEMPLATES.get(
+    complaint_type, RESOLUTION_TEMPLATES['general']
+)['en'])
+
+Return this in the response.
+
+════════════════════════════════════════════════
+PART 7: ESCALATION MESSAGES IN LANGUAGE
+════════════════════════════════════════════════
+
+When escalation is triggered, the 
+escalation message must also be in 
+the selected language:
+
+ESCALATION_MESSAGES = {
+  "en": "Your complaint has been escalated to a senior support agent who will contact you within 15-30 minutes.",
+  "hi": "आपकी शिकायत वरिष्ठ सहायता एजेंट को भेज दी गई है जो 15-30 मिनट में संपर्क करेगा।",
+  "kn": "ನಿಮ್ಮ ದೂರನ್ನು ಹಿರಿಯ ಸಹಾಯ ಏಜೆಂಟ್‌ಗೆ ಕಳುಹಿಸಲಾಗಿದೆ. 15-30 ನಿಮಿಷದಲ್ಲಿ ಸಂಪರ್ಕಿಸುತ್ತಾರೆ.",
+  "ta": "உங்கள் புகார் மூத்த ஆதரவு முகவருக்கு அனுப்பப்பட்டது. 15-30 நிமிடத்தில் தொடர்பு கொள்வார்கள்.",
+  "te": "మీ ఫిర్యాదు సీనియర్ సపోర్ట్ ఏజెంట్‌కు పంపబడింది. 15-30 నిమిషాలలో సంప్రదిస్తారు.",
+  "es": "Su queja ha sido escalada a un agente senior que se pondrá en contacto con usted en 15-30 minutos.",
+  "fr": "Votre réclamation a été transmise à un agent senior qui vous contactera dans 15-30 minutes."
+}
+
+HIGH_FRUSTRATION_MESSAGES = {
+  "en": "We sincerely apologize for the frustration caused. Your case has been prioritized and a senior agent will reach you shortly.",
+  "hi": "हम आपकी परेशानी के लिए क्षमा चाहते हैं। आपके मामले को प्राथमिकता दी गई है।",
+  "kn": "ಉಂಟಾದ ತೊಂದರೆಗೆ ನಾವು ಕ್ಷಮಿಸಿ. ನಿಮ್ಮ ಪ್ರಕರಣಕ್ಕೆ ಆದ್ಯತೆ ನೀಡಲಾಗಿದೆ.",
+  "ta": "ஏற்பட்ட சிரமத்திற்கு மன்னிக்கவும். உங்கள் வழக்கு முன்னுரிமை அளிக்கப்பட்டுள்ளது.",
+  "te": "కలిగిన ఇబ్బందికి క్షమాపణలు. మీ కేసుకు ప్రాధాన్యత ఇవ్వబడింది.",
+  "es": "Nos disculpamos sinceramente por la frustración causada. Su caso ha sido priorizado.",
+  "fr": "Nous nous excusons sincèrement pour la frustration causée. Votre dossier a été priorisé."
+}
+
+In analyze endpoint, include language 
+in escalation response too.
+
+════════════════════════════════════════════════
+FINAL VERIFICATION CHECKLIST:
+════════════════════════════════════════════════
+
+Test each language by:
+1. Select Hindi (HI) from language selector
+2. Verify ALL sidebar labels are in Hindi
+3. Verify ALL page titles are in Hindi
+4. Type complaint in Hindi using voice input
+5. Verify AI resolution responds in Hindi
+6. Verify frustration meter labels in Hindi
+7. Select Kannada (KN) — verify same
+8. Verify language persists on page reload
+9. Verify language selector shows current flag
+
+Must work perfectly for all 7 languages:
+EN | HI | KN | TA | TE | ES | FR
+
+DO NOT break any existing functionality.
+Start with Part 1 (translations.ts) first.
+Verify each part before moving to next.

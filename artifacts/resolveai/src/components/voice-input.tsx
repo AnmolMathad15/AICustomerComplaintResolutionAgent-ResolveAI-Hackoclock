@@ -19,6 +19,10 @@ interface VoiceInputProps {
   /** BCP-47 locale, e.g. "en-IN", "hi-IN", "kn-IN". Hot-swaps when changed. */
   lang?: string;
   title?: string;
+  /** Notifies parent when listening starts/stops, so it can show a banner. */
+  onListeningChange?: (listening: boolean) => void;
+  /** Localized error code: "no-speech" | "network" | "not-allowed" | other. */
+  onError?: (code: string) => void;
 }
 
 type SpeechRecognitionExtended = SpeechRecognitionLike & {
@@ -41,6 +45,8 @@ export function VoiceInput({
   className,
   lang = "en-IN",
   title = "Dictate complaint",
+  onListeningChange,
+  onError,
 }: VoiceInputProps) {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
@@ -83,8 +89,15 @@ export function VoiceInput({
       const transcript = best.trim();
       if (transcript) onTranscriptRef.current(transcript);
     };
-    rec.onerror = () => setListening(false);
-    rec.onend = () => setListening(false);
+    rec.onerror = (e: any) => {
+      setListening(false);
+      onListeningChange?.(false);
+      onError?.(e?.error ?? "unknown");
+    };
+    rec.onend = () => {
+      setListening(false);
+      onListeningChange?.(false);
+    };
     recognitionRef.current = rec;
     return () => {
       try {
@@ -103,12 +116,15 @@ export function VoiceInput({
     if (listening) {
       rec.stop();
       setListening(false);
+      onListeningChange?.(false);
     } else {
       try {
         rec.start();
         setListening(true);
+        onListeningChange?.(true);
       } catch {
         setListening(false);
+        onListeningChange?.(false);
       }
     }
   };

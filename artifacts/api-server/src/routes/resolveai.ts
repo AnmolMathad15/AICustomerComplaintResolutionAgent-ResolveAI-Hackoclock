@@ -26,6 +26,10 @@ import {
   GetCustomerParams,
 } from "@workspace/api-zod";
 import { localizeResolution } from "../lib/localize-resolution.js";
+import {
+  nativeResolutionTemplate,
+  nativeEscalationMessage,
+} from "../lib/resolution-templates-i18n.js";
 import { imageAnalysisService } from "../lib/image-analysis.js";
 import { enhancedDecisionEngine } from "../lib/decision-engine.js";
 
@@ -75,16 +79,32 @@ router.post("/analyze", async (req, res): Promise<void> => {
   }
 
   // Localize the generated resolution server-side at write time so the stored
-  // text is already in the customer's UI language.
+  // text is already in the customer's UI language. Two layers:
+  //   1. Prefer hand-written native templates per (complaintType, language)
+  //      — fully fluent, not stitched word-swaps.
+  //   2. Fall back to phrase-substitution for anything not covered.
   if (language && language !== "en") {
-    result.resolution = localizeResolution(result.resolution, language);
+    const customer = customers.find((c) => c.customerId === parsed.data.customerId);
+    const isPremium = customer?.tier === "Premium";
+    const native = nativeResolutionTemplate(
+      result.complaintType,
+      language,
+      isPremium
+    );
+    result.resolution = native ?? localizeResolution(result.resolution, language);
+
+    const highFrustration =
+      typeof result.frustrationScore === "number" && result.frustrationScore >= 70;
+    const nativeEsc = nativeEscalationMessage(language, highFrustration);
     if (result.escalationSummary) {
-      result.escalationSummary = localizeResolution(result.escalationSummary, language);
+      result.escalationSummary =
+        nativeEsc ?? localizeResolution(result.escalationSummary, language);
     }
     if (result.escalation) {
       result.escalation = {
         ...result.escalation,
-        summary: localizeResolution(result.escalation.summary, language),
+        summary:
+          nativeEsc ?? localizeResolution(result.escalation.summary, language),
       };
     }
   }
